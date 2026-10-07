@@ -1,0 +1,28 @@
+{
+  "version": "synthetic-retrieval-v1",
+  "extra_documents": [
+    {"title":"SYNTHETIC Оплата", "document_type":"contract", "text":"Статья 1\nСинтетический пример: оплата после подписания акта. Это не правовая норма."},
+    {"title":"SYNTHETIC Конфиденциальность", "document_type":"nda", "text":"Статья 2\nСинтетический пример: конфиденциальность информации обсуждается отдельно. Это не правовая норма."}
+  ],
+  "cases": [
+    {"id":"payment", "query":"payment", "expected":["SYNTHETIC Contract"]},
+    {"id":"nda", "query":"confidential disclosed", "expected":["SYNTHETIC NDA"]},
+    {"id":"employment", "query":"working hours", "expected":["SYNTHETIC Employment"]},
+    {"id":"privacy", "query":"restrict access", "expected":["SYNTHETIC Personal Data"]},
+    {"id":"rules", "query":"approves expenditure", "expected":["SYNTHETIC Internal Rules"]},
+    {"id":"norm", "query":"written delivery", "expected":["SYNTHETIC Normative Example"]},
+    {"id":"lease", "query":"rent maintenance", "expected":["SYNTHETIC Lease"]},
+    {"id":"services", "query":"delivered work", "expected":["SYNTHETIC Services"]},
+    {"id":"procurement", "query":"supplier conflicts", "expected":["SYNTHETIC Procurement"]},
+    {"id":"retention", "query":"backups deletion", "expected":["SYNTHETIC Retention"]},
+    {"id":"ru_payment", "query":"ОПЛАТА акта", "expected":["SYNTHETIC Оплата"]},
+    {"id":"ru_nda", "query":"конфиденциальность информации", "expected":["SYNTHETIC Конфиденциальность"]},
+    {"id":"multi_source", "query":"acceptance", "expected":["SYNTHETIC Contract", "SYNTHETIC Services"]},
+    {"id":"absent", "query":"xylophone astrophysics", "expected":[]},
+    {"id":"punctuation", "query":"?!", "expected":[]},
+    {"id":"wrong_country", "query":"payment", "jurisdiction":"DE", "expected":[]},
+    {"id":"past", "query":"payment", "effective_on":"2025-01-01", "expected":[]},
+    {"id":"wrong_type", "query":"payment", "document_types":["nda"], "expected":[]},
+    {"id":"other_owner", "query":"payment", "owner_id":"other-owner", "expected":[]}
+  ]
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior QA Engineer"
+  short_description: "Testing and quality engineering for AI Office"
+  default_prompt: "Use $senior-qa to design and verify tests for this AI Office change."

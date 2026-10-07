@@ -1,0 +1,143 @@
+{
+  "dataset_version": "synthetic-accounting-rub-v7",
+  "financial_report": {
+    "aging": {
+      "1_30": "0.00",
+      "31_60": "0.00",
+      "61_90": "0.00",
+      "not_due": "455619.20",
+      "over_90": "0.00"
+    },
+    "cash_in": "151500.00",
+    "cash_out": "300000.00",
+    "net": "-148500.00",
+    "payables_count": 102,
+    "plan_fact": {
+      "incoming_variance": "1499.99",
+      "outgoing_variance": "9999.98"
+    },
+    "receivable_aging": {
+      "1_30": "390000.00",
+      "31_60": "0.00",
+      "61_90": "0.00",
+      "not_due": "1035000.00",
+      "over_90": "0.00"
+    },
+    "total_bank_balance": "3200000.00",
+    "total_receivable": "1425000.00"
+  },
+  "invoices": {
+    "inv_001": {
+      "counterparty_status": "new",
+      "findings": [
+        "DUPLICATE_INVOICE",
+        "OVERDUE"
+      ],
+      "outstanding": "66.54"
+    },
+    "inv_002": {
+      "counterparty_status": "new",
+      "findings": [
+        "DUPLICATE_INVOICE"
+      ],
+      "outstanding": "72.60"
+    },
+    "inv_003": {
+      "counterparty_status": "established",
+      "findings": [
+        "OVERDUE",
+        "TAX_MISMATCH",
+        "TOTAL_MISMATCH"
+      ],
+      "outstanding": "78.64"
+    },
+    "inv_004": {
+      "counterparty_status": "blocked",
+      "findings": [
+        "BANK_DETAILS_CHANGED"
+      ],
+      "outstanding": "84.70"
+    },
+    "inv_005": {
+      "counterparty_status": "established",
+      "findings": [
+        "CONTRACT_MISSING",
+        "OVERDUE"
+      ],
+      "outstanding": "90.74"
+    },
+    "inv_006": {
+      "counterparty_status": "new",
+      "findings": [
+        "CONTRACT_LIMIT"
+      ],
+      "outstanding": "30250.00"
+    },
+    "inv_007": {
+      "counterparty_status": "established",
+      "findings": [
+        "OVERDUE"
+      ],
+      "outstanding": "102.84"
+    },
+    "inv_008": {
+      "counterparty_status": "established",
+      "findings": [],
+      "outstanding": "108.90"
+    },
+    "inv_009": {
+      "counterparty_status": "established",
+      "findings": [
+        "OVERDUE"
+      ],
+      "outstanding": "114.94"
+    },
+    "inv_010": {
+      "counterparty_status": "established",
+      "findings": [],
+      "outstanding": "121.00"
+    },
+    "inv_100": {
+      "counterparty_status": "established",
+      "findings": [],
+      "outstanding": "1331.00"
+    },
+    "inv_101": {
+      "counterparty_status": "established",
+      "findings": [],
+      "outstanding": "242000.00"
+    }
+  },
+  "policy_matrix": {
+    "est_200000_00": {
+      "decision": "allow_draft",
+      "reasons": [
+        "SYNTHETIC_DRAFT_ONLY",
+        "REAL_PAYMENT_ALWAYS_MANUAL"
+      ]
+    },
+    "est_200000_01": {
+      "decision": "require_owner_approval",
+      "reasons": [
+        "COUNTERPARTY_LIMIT_EXCEEDED",
+        "SYNTHETIC_DRAFT_ONLY",
+        "REAL_PAYMENT_ALWAYS_MANUAL"
+      ]
+    },
+    "new_100000_00": {
+      "decision": "allow_draft",
+      "reasons": [
+        "SYNTHETIC_DRAFT_ONLY",
+        "REAL_PAYMENT_ALWAYS_MANUAL"
+      ]
+    },
+    "new_100000_01": {
+      "decision": "require_owner_approval",
+      "reasons": [
+        "COUNTERPARTY_LIMIT_EXCEEDED",
+        "SYNTHETIC_DRAFT_ONLY",
+        "REAL_PAYMENT_ALWAYS_MANUAL"
+      ]
+    }
+  }
+}

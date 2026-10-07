@@ -1,0 +1,114 @@
+{
+  "id": "daily_cash_and_receivable_risk",
+  "version": 3,
+  "title": "Ежедневный контроль денег и рисков неплатежей (паспорт V3)",
+  "result_owner_id": "usr_demo_owner",
+  "reviewer_roles": ["owner"],
+  "acceptance_checks": [
+    "Снимок бухгалтерских данных привязан к дате контроля",
+    "Денежный поток и просроченная дебиторская задолженность проверены отдельно",
+    "Результат не создаёт платёж и требует review владельца"
+  ],
+  "allowed_actions": ["analyze"],
+  "forbidden_actions": ["real_payment", "prepare_payment_draft"],
+  "autonomy_level": "a1_recommendation",
+  "enabled": true,
+  "policy_version": "tz-v2.1-policy-v1",
+  "output_schema_version": "office_mock_v1",
+  "run_budget": {
+    "max_steps": 8,
+    "max_llm_calls": 0,
+    "max_rework_cycles": 2,
+    "max_runtime_seconds": 120,
+    "max_input_tokens": 100000,
+    "max_output_tokens": 20000,
+    "max_cost_rub": "0"
+  },
+  "nodes": [
+    {
+      "id": "accounting_snapshot",
+      "agent": "accountant",
+      "action": "accounting_snapshot",
+      "depends_on": [],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "AccountingResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "cash_control",
+      "agent": "accountant",
+      "action": "cash_control",
+      "depends_on": ["accounting_snapshot"],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "AccountingResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "receivable_risk",
+      "agent": "accountant",
+      "action": "receivable_risk",
+      "depends_on": ["accounting_snapshot"],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "AccountingResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "security_preflight",
+      "agent": "security",
+      "action": "security_preflight",
+      "depends_on": [],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "SecurityResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "security_postflight",
+      "agent": "security",
+      "action": "security_postflight",
+      "depends_on": ["cash_control", "receivable_risk", "security_preflight"],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "SecurityResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    }
+  ],
+  "passport": {
+    "trigger": "Ежедневно после доступности согласованного snapshot 1С; ручной запуск по требованию",
+    "recipient": "Собственник инвестиционной компании",
+    "result": "Принятая сводка по деньгам, дебиторке, обязательствам, аномалиям и рискам неплатежей",
+    "owner": "Собственник инвестиционной компании",
+    "acceptance_criteria": [
+      "Детерминированные суммы 100% воспроизводимы",
+      "Виден watermark последней синхронизации 1С",
+      "Каждый риск имеет доказательство и рекомендуемое действие",
+      "Решение владельца зафиксировано"
+    ],
+    "allowed_sources": ["1С:Бухгалтерия (read-only)", "Утверждённые регламенты"],
+    "allowed_capabilities": ["accounting_snapshot", "cash_control", "receivable_risk", "security_preflight", "security_postflight"],
+    "stop_conditions": [
+      "Нет свежего snapshot 1С (WAITING_INPUT / FAILED_SAFE)",
+      "Критическое расхождение сверки (WAITING_INPUT)",
+      "Не установлен company scope (DENY)",
+      "Превышен бюджет или timeout (FAILED_SAFE)"
+    ],
+    "escalation": "Эскалация владельцу процесса; при юридической эскалации обязателен поиск в Консультант+",
+    "rollback": "Возврат к последнему подтверждённому snapshot; повторный запуск после устранения причины",
+    "manual_fallback": "Сотрудник формирует сводку вручную из той же утверждённой выгрузки 1С по шаблону",
+    "autonomy_ceiling": "a1_recommendation",
+    "metrics": ["время цикла", "ручные касания", "подтверждённые риски", "переделки", "стоимость принятого результата"]
+  }
+}

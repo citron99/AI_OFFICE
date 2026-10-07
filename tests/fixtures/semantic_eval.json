@@ -1,0 +1,33 @@
+{
+  "version": "synthetic-paraphrases-ru-en-v1",
+  "documents": [
+    {"title": "SYNTHETIC Payment", "document_type": "contract", "text": "Покупатель перечисляет деньги поставщику в течение десяти дней после подписания акта приёмки товара."},
+    {"title": "SYNTHETIC Secrecy", "document_type": "nda", "text": "Получатель обязан хранить коммерческую тайну и не передавать закрытые сведения третьим лицам без письменного согласия."},
+    {"title": "SYNTHETIC Schedule", "document_type": "employment", "text": "Сотрудник работает с девяти утра до шести вечера с понедельника по пятницу. Суббота и воскресенье являются выходными."},
+    {"title": "SYNTHETIC Rent", "document_type": "lease", "text": "Арендатор вносит ежемесячную плату за пользование помещением. Электричество и отопление оплачиваются отдельно по счетам."},
+    {"title": "SYNTHETIC Backups", "document_type": "retention_policy", "text": "Резервные копии базы данных автоматически уничтожаются через тридцать дней после создания."},
+    {"title": "SYNTHETIC Interests", "document_type": "procurement", "text": "Участник закупки сообщает комиссии о родственных связях с руководством поставщика до выбора победителя."},
+    {"title": "SYNTHETIC Approval", "document_type": "internal_regulation", "text": "Перед приобретением оборудования дороже пяти тысяч евро необходимо получить письменное разрешение собственника."},
+    {"title": "SYNTHETIC Personal data", "document_type": "privacy_policy", "text": "Просматривать адреса и телефонные номера клиентов могут только уполномоченные сотрудники отдела обслуживания."}
+  ],
+  "cases": [
+    {"id": "ru_payment", "category": "paraphrase_ru", "query": "Когда наступает срок расчёта за принятый товар?", "expected": ["SYNTHETIC Payment"]},
+    {"id": "ru_secrecy", "category": "paraphrase_ru", "query": "Разрешено ли разглашать секреты бизнеса посторонним?", "expected": ["SYNTHETIC Secrecy"]},
+    {"id": "ru_schedule", "category": "paraphrase_ru", "query": "Каков трудовой распорядок и в какие дни можно отдыхать?", "expected": ["SYNTHETIC Schedule"]},
+    {"id": "ru_rent", "category": "paraphrase_ru", "query": "Включены ли коммунальные услуги в стоимость найма офиса?", "expected": ["SYNTHETIC Rent"]},
+    {"id": "ru_backups", "category": "paraphrase_ru", "query": "Как долго сохраняются дубликаты для восстановления информации?", "expected": ["SYNTHETIC Backups"]},
+    {"id": "ru_interests", "category": "paraphrase_ru", "query": "Что делать, если на тендер пришла фирма родственника?", "expected": ["SYNTHETIC Interests"]},
+    {"id": "ru_approval", "category": "paraphrase_ru", "query": "Кто должен одобрить покупку дорогого станка?", "expected": ["SYNTHETIC Approval"]},
+    {"id": "ru_privacy", "category": "paraphrase_ru", "query": "Кому доступна контактная информация покупателей?", "expected": ["SYNTHETIC Personal data"]},
+    {"id": "en_payment", "category": "cross_language", "query": "When must the buyer pay after accepting the goods?", "expected": ["SYNTHETIC Payment"]},
+    {"id": "en_secrecy", "category": "cross_language", "query": "May business secrets be shared with outsiders?", "expected": ["SYNTHETIC Secrecy"]},
+    {"id": "en_rent", "category": "cross_language", "query": "Are heating and electricity included in the office rental fee?", "expected": ["SYNTHETIC Rent"]},
+    {"id": "en_backups", "category": "cross_language", "query": "When are database backups deleted?", "expected": ["SYNTHETIC Backups"]},
+    {"id": "missing_astronomy", "category": "out_of_scope", "query": "На каком расстоянии от Земли находится звезда Сириус?", "expected": []},
+    {"id": "missing_cooking", "category": "out_of_scope", "query": "How many minutes should spaghetti boil?", "expected": []},
+    {"id": "missing_law", "category": "hard_negative", "query": "Какой штраф предусмотрен законом за просрочку оплаты?", "expected": []},
+    {"id": "foreign_country", "category": "access_filter", "query": "When must the buyer pay?", "jurisdiction": "DE", "expected": []},
+    {"id": "other_owner", "category": "access_filter", "query": "Когда оплатить товар?", "owner_id": "another-owner", "expected": []},
+    {"id": "before_effective", "category": "access_filter", "query": "Когда оплатить товар?", "effective_on": "2025-01-01", "expected": []}
+  ]
+}

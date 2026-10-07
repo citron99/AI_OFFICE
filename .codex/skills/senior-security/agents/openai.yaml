@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Security Engineer"
+  short_description: "Threat modeling and hardening for AI Office"
+  default_prompt: "Use $senior-security to threat-model or review this AI Office change."

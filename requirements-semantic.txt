@@ -1,0 +1,4 @@
+# Optional CPU stack. Compile on Linux/Python 3.12 against base constraints.
+# Use the PyTorch CPU index; do not install this unpinned file for deployment.
+sentence-transformers>=5,<6
+torch>=2.8,<3

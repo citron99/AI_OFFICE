@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior DevOps Engineer"
+  short_description: "Local infrastructure and CI for AI Office"
+  default_prompt: "Use $senior-devops to improve this AI Office infrastructure workflow."

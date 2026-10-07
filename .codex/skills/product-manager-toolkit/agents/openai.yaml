@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Office Product Manager"
+  short_description: "Product strategy and delivery for AI Office"
+  default_prompt: "Use $product-manager-toolkit to scope and prioritize this AI Office feature."

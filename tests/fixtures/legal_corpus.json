@@ -1,0 +1,12 @@
+[
+  {"title":"SYNTHETIC Contract", "document_type":"contract", "text":"Article 1\nSynthetic contract: payment is due after acceptance. This fixture is not law."},
+  {"title":"SYNTHETIC NDA", "document_type":"nda", "text":"Article 1\nSynthetic NDA: confidential information must not be disclosed. This fixture is not law."},
+  {"title":"SYNTHETIC Employment", "document_type":"employment", "text":"Article 1\nSynthetic employment: working hours are agreed in writing. This fixture is not law."},
+  {"title":"SYNTHETIC Personal Data", "document_type":"privacy_policy", "text":"Section 1\nSynthetic personal data: restrict access and record a retention period. This fixture is not law."},
+  {"title":"SYNTHETIC Internal Rules", "document_type":"internal_regulation", "text":"Section 1\nSynthetic internal rules: an owner approves expenditure. This fixture is not law."},
+  {"title":"SYNTHETIC Normative Example", "document_type":"test_norm", "text":"Article 7\nSynthetic normative example: test notices use written delivery. This fixture is not law."},
+  {"title":"SYNTHETIC Lease", "document_type":"lease", "text":"Article 2\nSynthetic lease: rent and maintenance are separate charges. This fixture is not law."},
+  {"title":"SYNTHETIC Services", "document_type":"services", "text":"Article 3\nSynthetic services: acceptance documents identify delivered work. This fixture is not law."},
+  {"title":"SYNTHETIC Procurement", "document_type":"procurement", "text":"Section 4\nSynthetic procurement: a supplier declares conflicts of interest. This fixture is not law."},
+  {"title":"SYNTHETIC Retention", "document_type":"retention_policy", "text":"Section 5\nSynthetic retention: backups follow documented deletion schedules. This fixture is not law."}
+]

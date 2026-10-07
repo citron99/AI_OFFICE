@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir uv==0.12.5
+COPY pyproject.toml uv.lock README.md ./
+COPY app ./app
+RUN uv sync --locked --dev --no-editable
+COPY requirements-semantic.lock ./
+RUN uv pip install --python /app/.venv/bin/python --torch-backend cpu --require-hashes -r requirements-semantic.lock
+RUN uv pip check --python /app/.venv/bin/python
+COPY alembic.ini ./
+COPY migrations ./migrations
+COPY tests ./tests
+COPY scripts ./scripts
+ENV APP_ENV=test LLM_PROVIDER=mock EMBEDDING_PROVIDER=mock LEGAL_ANALYSIS_ENABLED=false OMP_NUM_THREADS=2 TOKENIZERS_PARALLELISM=false
+CMD ["uv", "run", "--no-sync", "pytest", "-q"]

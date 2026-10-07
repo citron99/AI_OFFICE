@@ -1,0 +1,105 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked --dev
+      - run: docker compose -p ai-office-ci up -d --build --wait --wait-timeout 120
+      - run: uv run python scripts/smoke_office.py
+      - name: Service diagnostics
+        if: failure()
+        run: docker compose -p ai-office-ci logs --tail 100
+      - name: Stop CI services (preserve volumes)
+        if: always()
+        run: docker compose -p ai-office-ci stop
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run generate:api
+        working-directory: frontend
+      - run: git diff --exit-code -- frontend/src/types/generated/api.ts
+      - run: npm run build
+        working-directory: frontend
+      - run: npm test
+        working-directory: frontend
+      - run: npm audit --audit-level=high
+        working-directory: frontend
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: ai_office
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked --dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy app
+      - run: uv run pytest -q
+      - name: OpenAPI artifact is current
+        run: |
+          uv run python scripts/export_openapi.py
+          git diff --exit-code -- docs/openapi.json
+      - name: Closed evaluation set (TZ 13.2) and ACC-02 routing gate
+        run: uv run python scripts/run_evals.py
+      - name: Coverage report (gate at 80%)
+        run: |
+          uv run pytest -q --cov=app --cov-report=term --cov-fail-under=80 --deselect tests/integration/test_retrieval_eval_cli.py
+      - name: Real PostgreSQL isolation, migrations and concurrent reindex
+        timeout-minutes: 5
+        env:
+          TEST_POSTGRES_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/ai_office
+        run: uv run pytest -q tests/postgres
+      - name: Start MinIO object storage
+        run: docker compose -p ai-office-storage-ci --profile s3 up -d --wait minio
+      - name: Create isolated MinIO test bucket
+        run: >-
+          uv run python -c "import boto3;
+          boto3.client('s3', endpoint_url='http://127.0.0.1:9000',
+          aws_access_key_id='minioadmin', aws_secret_access_key='minioadmin')
+          .create_bucket(Bucket='ai-office-artifacts-ci')"
+      - name: S3/MinIO storage contract and compensation
+        env:
+          TEST_S3_URL: http://127.0.0.1:9000
+          TEST_S3_BUCKET: ai-office-artifacts-ci
+          TEST_S3_ACCESS_KEY: minioadmin
+          TEST_S3_SECRET_KEY: minioadmin
+        run: uv run pytest -q tests/integration/test_object_storage.py
+      - name: Stop MinIO
+        if: always()
+        run: docker compose -p ai-office-storage-ci --profile s3 down -v
+      - name: Synthetic retrieval regression (no external LLM)
+        run: uv run python scripts/eval_retrieval.py --check
+      - name: PostgreSQL migration compatibility
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/ai_office
+        run: |
+          uv run alembic upgrade head
+          uv run alembic check

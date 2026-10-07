@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Office Financial Analyst"
+  short_description: "Financial analysis for AI Office decisions"
+  default_prompt: "Use $financial-analyst to analyze this AI Office financial question."

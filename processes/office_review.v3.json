@@ -1,0 +1,101 @@
+{
+  "id": "office_review",
+  "version": 3,
+  "title": "Проверка задачи AI-офисом (паспорт V3)",
+  "result_owner_id": "usr_demo_owner",
+  "reviewer_roles": ["owner"],
+  "acceptance_checks": [
+    "Проверены основания и ограничения результата",
+    "Расхождения и недостающие сведения явно указаны",
+    "Принятие результата не разрешает финансовые действия"
+  ],
+  "allowed_actions": ["analyze", "prepare_payment_draft"],
+  "forbidden_actions": ["real_payment"],
+  "autonomy_level": "a2_draft",
+  "enabled": true,
+  "policy_version": "tz-v2.1-policy-v1",
+  "output_schema_version": "office_mock_v1",
+  "run_budget": {
+    "max_steps": 8,
+    "max_llm_calls": 2,
+    "max_rework_cycles": 2,
+    "max_runtime_seconds": 120,
+    "max_input_tokens": 100000,
+    "max_output_tokens": 20000,
+    "max_cost_rub": "100.00"
+  },
+  "nodes": [
+    {
+      "id": "accounting_snapshot",
+      "agent": "accountant",
+      "action": "accountant_pilot",
+      "depends_on": [],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "AccountingResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "security_preflight",
+      "agent": "security",
+      "action": "security_preflight",
+      "depends_on": [],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "SecurityResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    },
+    {
+      "id": "legal_review",
+      "agent": "lawyer",
+      "action": "lawyer_pilot",
+      "depends_on": ["security_preflight"],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "LegalResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 1,
+      "estimated_cost_rub": "5.00"
+    },
+    {
+      "id": "security_postflight",
+      "agent": "security",
+      "action": "security_postflight",
+      "depends_on": ["accounting_snapshot", "security_preflight", "legal_review"],
+      "input_refs": [],
+      "risk_level": "medium",
+      "expected_output_schema": "SecurityResult",
+      "retry_policy": { "max_attempts": 1, "retryable_error_codes": [] },
+      "estimated_llm_calls": 0,
+      "estimated_cost_rub": "0"
+    }
+  ],
+  "passport": {
+    "trigger": "Ручной запуск собственником или сотрудником через Web UI",
+    "recipient": "Собственник инвестиционной компании",
+    "result": "Проверенный сводный отчёт по задаче: бухгалтерия, право, безопасность с доказательствами",
+    "owner": "Собственник инвестиционной компании",
+    "acceptance_criteria": [
+      "Детерминированные суммы совпадают с данными AccountingProvider",
+      "Юридическая ветвь содержит поиск в Консультант+ или контролируемую остановку",
+      "Политическое решение воспроизводимо по матрице ТЗ 7.2"
+    ],
+    "allowed_sources": ["1С:Бухгалтерия (read-only)", "Консультант+ (лицензированный канал)", "Legal RAG (вспомогательный)", "Вложения задачи"],
+    "allowed_capabilities": ["accounting_snapshot", "security_preflight", "legal_review", "security_postflight"],
+    "stop_conditions": [
+      "Консультант+ недоступен (WAITING_SOURCE)",
+      "Конфликт данных источников (WAITING_INPUT)",
+      "Превышен бюджет или timeout (FAILED_SAFE)",
+      "Обнаружен запрещённый класс данных (DENY)"
+    ],
+    "escalation": "Эскалация собственнику; юридические вопросы - владельцу интеграции Консультант+",
+    "rollback": "Повторный запуск с последнего подтверждённого checkpoint; внешние действия не выполняются",
+    "manual_fallback": "Сотрудник выполняет проверку вручную по тем же источникам и фиксирует результат вне системы",
+    "autonomy_ceiling": "a2_draft",
+    "metrics": ["время цикла", "принятые результаты", "переделки", "стоимость принятого результата"]
+  }
+}

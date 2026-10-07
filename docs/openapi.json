@@ -1,0 +1,7168 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AI-офис собственника",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/oidc/session": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Oidc Session",
+        "description": "Federated login: exchange a verified OIDC assertion for a session.",
+        "operationId": "oidc_session_api_v1_auth_oidc_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OidcSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Oidc Session Api V1 Auth Oidc Session Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Refresh Session",
+        "description": "Rotate the refresh token and mint a fresh access credential.",
+        "operationId": "refresh_session_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Refresh Session Api V1 Auth Refresh Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Logout",
+        "operationId": "logout_api_v1_auth_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "boolean"
+                  },
+                  "type": "object",
+                  "title": "Response Logout Api V1 Auth Logout Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/invitations": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Create Invitation",
+        "description": "OWNER invites staff; role and company are server-assigned.",
+        "operationId": "create_invitation_api_v1_auth_invitations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Invitation Api V1 Auth Invitations Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/invitations/accept": {
+      "post": {
+        "tags": [
+          "authentication"
+        ],
+        "summary": "Accept Invitation",
+        "description": "Redeem the invitation; role and company come from the invitation itself.\n\nNo prior access token is required: the invitation token IS the credential.",
+        "operationId": "accept_invitation_api_v1_auth_invitations_accept_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvitationAccept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Accept Invitation Api V1 Auth Invitations Accept Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/metrics": {
+      "get": {
+        "tags": [
+          "observability"
+        ],
+        "summary": "Metrics",
+        "description": "Operational gauges in Prometheus text format, scoped to one company.",
+        "operationId": "metrics_api_v1_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task",
+        "operationId": "create_task_api_v1_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "List Tasks",
+        "operationId": "list_tasks_api_v1_tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskResponse"
+                  },
+                  "title": "Response List Tasks Api V1 Tasks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/daily-cash-and-receivable-risk": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Run Daily Cash And Receivable Risk",
+        "description": "Run the first repeatable owner control; it only reads synthetic accounting data.",
+        "operationId": "run_daily_cash_and_receivable_risk_api_v1_tasks_daily_cash_and_receivable_risk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyControlCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task",
+        "operationId": "get_task_api_v1_tasks__task_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/process-graph": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Process Graph",
+        "operationId": "get_process_graph_api_v1_tasks__task_id__process_graph_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessGraph"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/cancel": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Cancel Task",
+        "operationId": "cancel_task_api_v1_tasks__task_id__cancel_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/clarify": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Clarify Task",
+        "operationId": "clarify_task_api_v1_tasks__task_id__clarify_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalClarification"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/retry": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Retry Task",
+        "operationId": "retry_task_api_v1_tasks__task_id__retry_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/files": {
+      "post": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Upload File",
+        "operationId": "upload_file_api_v1_files_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_file_api_v1_files_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/files/{artifact_id}": {
+      "delete": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Delete File",
+        "description": "ART-006: deletes the source, derived chunks, embeddings and the file.",
+        "operationId": "delete_file_api_v1_files__artifact_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "artifact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Artifact Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete File Api V1 Files  Artifact Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Download File",
+        "operationId": "download_file_api_v1_files__artifact_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "artifact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Artifact Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/knowledge/sources": {
+      "get": {
+        "tags": [
+          "legal knowledge (local pilot)"
+        ],
+        "summary": "List Sources",
+        "operationId": "list_sources_api_v1_knowledge_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SourceResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Sources Api V1 Knowledge Sources Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "legal knowledge (local pilot)"
+        ],
+        "summary": "Ingest Source",
+        "operationId": "ingest_source_api_v1_knowledge_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/knowledge/search": {
+      "post": {
+        "tags": [
+          "legal knowledge (local pilot)"
+        ],
+        "summary": "Search Sources",
+        "operationId": "search_sources_api_v1_knowledge_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/knowledge/sources/{source_id}/reindex": {
+      "post": {
+        "tags": [
+          "legal knowledge (local pilot)"
+        ],
+        "summary": "Reindex Source",
+        "operationId": "reindex_source_api_v1_knowledge_sources__source_id__reindex_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/provider-status": {
+      "get": {
+        "tags": [
+          "legal provider (Consultant+)"
+        ],
+        "summary": "Provider Status",
+        "description": "Health, mode and license scope without exposing any licensed text.",
+        "operationId": "provider_status_api_v1_legal_provider_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Provider Status Api V1 Legal Provider Status Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/legal/search": {
+      "post": {
+        "tags": [
+          "legal provider (Consultant+)"
+        ],
+        "summary": "Search",
+        "description": "Manual licensed search; a full route always records its trail in the task.",
+        "operationId": "search_api_v1_legal_search_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 20,
+              "minimum": 1,
+              "default": 5,
+              "title": "Limit"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Search Api V1 Legal Search Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/change-radar/runs": {
+      "get": {
+        "tags": [
+          "legal provider (Consultant+)"
+        ],
+        "summary": "List Change Radar Runs",
+        "operationId": "list_change_radar_runs_api_v1_legal_change_radar_runs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LegalChangeRadarRunResponse"
+                  },
+                  "title": "Response List Change Radar Runs Api V1 Legal Change Radar Runs Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "legal provider (Consultant+)"
+        ],
+        "summary": "Create Change Radar Run",
+        "operationId": "create_change_radar_run_api_v1_legal_change_radar_runs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalChangeRadarCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalChangeRadarRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/legal/change-radar/runs/{run_id}/review": {
+      "post": {
+        "tags": [
+          "legal provider (Consultant+)"
+        ],
+        "summary": "Review Change Radar Run",
+        "operationId": "review_change_radar_run_api_v1_legal_change_radar_runs__run_id__review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalChangeReviewCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalChangeRadarRunResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounting/sync": {
+      "post": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Accounting Sync",
+        "operationId": "accounting_sync_api_v1_accounting_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/sync-runs": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Accounting Sync Runs",
+        "operationId": "accounting_sync_runs_api_v1_accounting_sync_runs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SyncResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Accounting Sync Runs Api V1 Accounting Sync Runs Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/financial-report": {
+      "post": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Financial Report Endpoint",
+        "operationId": "financial_report_endpoint_api_v1_accounting_financial_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinanceReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Me",
+        "operationId": "me_api_v1_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Me Api V1 Me Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/status": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Accounting Status",
+        "operationId": "accounting_status_api_v1_accounting_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Accounting Status Api V1 Accounting Status Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/invoices": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Invoices",
+        "operationId": "invoices_api_v1_accounting_invoices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Invoice"
+                  },
+                  "type": "array",
+                  "title": "Response Invoices Api V1 Accounting Invoices Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/counterparties": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Counterparties",
+        "operationId": "counterparties_api_v1_accounting_counterparties_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Counterparty"
+                  },
+                  "type": "array",
+                  "title": "Response Counterparties Api V1 Accounting Counterparties Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/payments": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Payments",
+        "operationId": "payments_api_v1_accounting_payments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Payment"
+                  },
+                  "type": "array",
+                  "title": "Response Payments Api V1 Accounting Payments Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/account-balances": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Account Balances",
+        "operationId": "account_balances_api_v1_accounting_account_balances_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountBalance"
+                  },
+                  "type": "array",
+                  "title": "Response Account Balances Api V1 Accounting Account Balances Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/receivables": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Receivables",
+        "operationId": "receivables_api_v1_accounting_receivables_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Receivable"
+                  },
+                  "type": "array",
+                  "title": "Response Receivables Api V1 Accounting Receivables Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/receivable-receipts": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Receivable Receipts",
+        "operationId": "receivable_receipts_api_v1_accounting_receivable_receipts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReceivableReceipt"
+                  },
+                  "type": "array",
+                  "title": "Response Receivable Receipts Api V1 Accounting Receivable Receipts Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/accounting/report": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Report",
+        "operationId": "report_api_v1_accounting_report_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "as_of",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "As Of"
+            }
+          },
+          {
+            "name": "invoice_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Invoice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountingResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/trace": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Trace",
+        "operationId": "trace_api_v1_tasks__task_id__trace_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Trace Api V1 Tasks  Task Id  Trace Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/activity": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Activity",
+        "description": "Return an owner-scoped activity feed assembled from persisted records.",
+        "operationId": "activity_api_v1_activity_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 250,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  },
+                  "title": "Response Activity Api V1 Activity Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approvals": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Approvals",
+        "operationId": "approvals_api_v1_approvals_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Approvals Api V1 Approvals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/approvals/{approval_id}/decision": {
+      "post": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Decision",
+        "operationId": "decision_api_v1_approvals__approval_id__decision_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "approval_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Approval Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/drafts": {
+      "get": {
+        "tags": [
+          "office"
+        ],
+        "summary": "Drafts",
+        "operationId": "drafts_api_v1_drafts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "title": "Response Drafts Api V1 Drafts Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/processes": {
+      "get": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Processes",
+        "operationId": "processes_api_v1_processes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/ProcessDefinition"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ProcessDefinitionV2"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ProcessDefinitionV3"
+                      }
+                    ]
+                  },
+                  "type": "array",
+                  "title": "Response Processes Api V1 Processes Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/processes/{process_id}/runtime": {
+      "get": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Get Process Runtime",
+        "description": "Autonomy ladder position and kill switches for one process.",
+        "operationId": "get_process_runtime_api_v1_processes__process_id__runtime_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Process Runtime Api V1 Processes  Process Id  Runtime Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Set Process Runtime",
+        "description": "Only the OWNER moves the ladder or flips a kill switch, instantly.",
+        "operationId": "set_process_runtime_api_v1_processes__process_id__runtime_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessRuntimeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Set Process Runtime Api V1 Processes  Process Id  Runtime Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/processes/quality": {
+      "get": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Process Quality",
+        "operationId": "process_quality_api_v1_processes_quality_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessQualityReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/processes/controls": {
+      "get": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Process Controls",
+        "description": "Summarize policy and postflight controls without returning task contents.",
+        "operationId": "process_controls_api_v1_processes_controls_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessControlReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}/result-review": {
+      "get": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Get Review",
+        "operationId": "get_review_api_v1_tasks__task_id__result_review_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Review Api V1 Tasks  Task Id  Result Review Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "processes and result reviews"
+        ],
+        "summary": "Submit Review",
+        "operationId": "submit_review_api_v1_tasks__task_id__result_review_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResultReviewCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Submit Review Api V1 Tasks  Task Id  Result Review Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/processes/{process_id}/schedule": {
+      "get": {
+        "tags": [
+          "process schedules"
+        ],
+        "summary": "Get Schedule",
+        "operationId": "get_schedule_api_v1_processes__process_id__schedule_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Schedule Api V1 Processes  Process Id  Schedule Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "process schedules"
+        ],
+        "summary": "Put Schedule",
+        "operationId": "put_schedule_api_v1_processes__process_id__schedule_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleConfig"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Schedule Api V1 Processes  Process Id  Schedule Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/processes/{process_id}/schedule/tick": {
+      "post": {
+        "tags": [
+          "process schedules"
+        ],
+        "summary": "Tick Schedule",
+        "description": "One scheduling beat: run the process if the policy says it is due.\n\nIn production a Celery beat job calls this; nothing runs when the owner\nhas not enabled the schedule or the configured stop-lines hold.",
+        "operationId": "tick_schedule_api_v1_processes__process_id__schedule_tick_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "process_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Process Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Tick Schedule Api V1 Processes  Process Id  Schedule Tick Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountBalance": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "account_id": {
+            "type": "string",
+            "title": "Account Id"
+          },
+          "account_name": {
+            "type": "string",
+            "title": "Account Name"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "account_id",
+          "account_name",
+          "as_of",
+          "amount"
+        ],
+        "title": "AccountBalance"
+      },
+      "AccountingResult": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "const": "accounting_mock_v1",
+            "title": "Mode",
+            "default": "accounting_mock_v1"
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version",
+            "default": "synthetic-accounting-rub-v7"
+          },
+          "invoice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Invoice"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "counterparty": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Counterparty"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paid": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Paid",
+            "default": "0"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Outstanding",
+            "default": "0"
+          },
+          "checked_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Checked On"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method",
+            "default": "Decimal; ROUND_HALF_UP to RUB kopecks; no currency conversion"
+          },
+          "cash_in": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Cash In",
+            "default": "0"
+          },
+          "cash_out": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Cash Out",
+            "default": "0"
+          },
+          "net_cash_flow": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Cash Flow",
+            "default": "0"
+          },
+          "invoice_count": {
+            "type": "integer",
+            "title": "Invoice Count",
+            "default": 0
+          },
+          "payment_count": {
+            "type": "integer",
+            "title": "Payment Count",
+            "default": 0
+          },
+          "overdue_count": {
+            "type": "integer",
+            "title": "Overdue Count",
+            "default": 0
+          },
+          "anomaly_count": {
+            "type": "integer",
+            "title": "Anomaly Count",
+            "default": 0
+          },
+          "receivable_total": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Receivable Total",
+            "default": "0"
+          },
+          "expected_receipts": {
+            "type": "string",
+            "title": "Expected Receipts",
+            "default": "0"
+          },
+          "receivable_aging": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Receivable Aging"
+          },
+          "nonpayment_risks": {
+            "items": {
+              "$ref": "#/components/schemas/NonpaymentRisk"
+            },
+            "type": "array",
+            "title": "Nonpayment Risks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary",
+          "checked_on"
+        ],
+        "title": "AccountingResult"
+      },
+      "AccrualEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "recognized_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Recognized On"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "revenue",
+              "cost_of_sales",
+              "operating_expense",
+              "depreciation"
+            ],
+            "title": "Category"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "reversal": {
+            "type": "boolean",
+            "title": "Reversal",
+            "default": false
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          },
+          "source_reference": {
+            "type": "string",
+            "title": "Source Reference"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "recognized_on",
+          "category",
+          "amount",
+          "source_reference",
+          "description"
+        ],
+        "title": "AccrualEntry"
+      },
+      "AgentResult": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary"
+        ],
+        "title": "AgentResult"
+      },
+      "AgentType": {
+        "type": "string",
+        "enum": [
+          "orchestrator",
+          "accountant",
+          "lawyer",
+          "security"
+        ],
+        "title": "AgentType"
+      },
+      "ArtifactResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "mime_type": {
+            "type": "string",
+            "title": "Mime Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "classification": {
+            "type": "string",
+            "title": "Classification"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "filename",
+          "mime_type",
+          "size_bytes",
+          "sha256",
+          "classification",
+          "created_at"
+        ],
+        "title": "ArtifactResponse"
+      },
+      "Body_upload_file_api_v1_files_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_file_api_v1_files_post"
+      },
+      "CashPeriod": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "incoming": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Incoming"
+          },
+          "outgoing": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Outgoing"
+          },
+          "net": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net"
+          },
+          "transaction_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Transaction Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "incoming",
+          "outgoing",
+          "net",
+          "transaction_ids"
+        ],
+        "title": "CashPeriod"
+      },
+      "Citation": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "locator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locator"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "jurisdiction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "title"
+        ],
+        "title": "Citation"
+      },
+      "ConsultantPlusSearchResult": {
+        "properties": {
+          "query_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8,
+            "title": "Query Id"
+          },
+          "source_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Source Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type"
+          },
+          "edition": {
+            "type": "string",
+            "title": "Edition"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "locator": {
+            "type": "string",
+            "title": "Locator"
+          },
+          "authority": {
+            "type": "string",
+            "title": "Authority"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Retrieved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query_id",
+          "source_id",
+          "title",
+          "jurisdiction",
+          "document_type",
+          "edition",
+          "effective_from",
+          "locator",
+          "authority",
+          "retrieved_at"
+        ],
+        "title": "ConsultantPlusSearchResult",
+        "description": "Metadata of one licensed source card found for a query."
+      },
+      "ConsultantPlusTrail": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "mock",
+              "licensed",
+              "off"
+            ],
+            "title": "Mode"
+          },
+          "provider_status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Provider Status"
+          },
+          "license_scope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LicenseScope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "searched": {
+            "type": "boolean",
+            "title": "Searched",
+            "default": false
+          },
+          "queries": {
+            "items": {
+              "$ref": "#/components/schemas/ConsultantPlusSearchResult"
+            },
+            "type": "array",
+            "title": "Queries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "mode",
+          "provider_status"
+        ],
+        "title": "ConsultantPlusTrail",
+        "description": "Evidence trail of the mandatory search step, stored with the result."
+      },
+      "Counterparty": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "bank_fingerprint": {
+            "type": "string",
+            "title": "Bank Fingerprint"
+          },
+          "relationship_status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "established",
+              "blocked"
+            ],
+            "title": "Relationship Status",
+            "default": "new"
+          },
+          "first_seen_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Seen On"
+          },
+          "successful_payment_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Successful Payment Count",
+            "default": 0
+          },
+          "last_reviewed_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Reviewed On"
+          },
+          "risk_tier": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "elevated",
+              "blocked"
+            ],
+            "title": "Risk Tier",
+            "default": "standard"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "bank_fingerprint"
+        ],
+        "title": "Counterparty"
+      },
+      "DailyControlCreate": {
+        "properties": {
+          "effective_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DailyControlCreate"
+      },
+      "DailyOwnerDigest": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode",
+            "default": "daily_owner_digest_v1"
+          },
+          "digest_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Digest Date"
+          },
+          "watermark": {
+            "type": "string",
+            "title": "Watermark"
+          },
+          "cash_available": {
+            "type": "string",
+            "title": "Cash Available"
+          },
+          "cash_in": {
+            "type": "string",
+            "title": "Cash In"
+          },
+          "cash_out": {
+            "type": "string",
+            "title": "Cash Out"
+          },
+          "net_cash_flow": {
+            "type": "string",
+            "title": "Net Cash Flow"
+          },
+          "expected_receipts": {
+            "type": "string",
+            "title": "Expected Receipts"
+          },
+          "receivable_total": {
+            "type": "string",
+            "title": "Receivable Total"
+          },
+          "receivable_aging": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Receivable Aging"
+          },
+          "top_nonpayment_risks": {
+            "items": {
+              "$ref": "#/components/schemas/NonpaymentRisk"
+            },
+            "type": "array",
+            "title": "Top Nonpayment Risks"
+          },
+          "anomaly_count": {
+            "type": "integer",
+            "title": "Anomaly Count",
+            "default": 0
+          },
+          "invoice_count": {
+            "type": "integer",
+            "title": "Invoice Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary",
+          "digest_date",
+          "watermark",
+          "cash_available",
+          "cash_in",
+          "cash_out",
+          "net_cash_flow",
+          "expected_receipts",
+          "receivable_total"
+        ],
+        "title": "DailyOwnerDigest"
+      },
+      "DecisionRequest": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Decision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision"
+        ],
+        "title": "DecisionRequest"
+      },
+      "DocumentExcerpt": {
+        "properties": {
+          "excerpt_id": {
+            "type": "string",
+            "title": "Excerpt Id"
+          },
+          "artifact_id": {
+            "type": "string",
+            "title": "Artifact Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "locator": {
+            "type": "string",
+            "title": "Locator"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "excerpt_id",
+          "artifact_id",
+          "filename",
+          "sha256",
+          "locator",
+          "text"
+        ],
+        "title": "DocumentExcerpt"
+      },
+      "EvidenceAssessment": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "sufficient",
+              "partial",
+              "insufficient"
+            ],
+            "title": "Status"
+          },
+          "rationale": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale"
+          },
+          "missing_information": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Missing Information"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceReference"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "References"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "rationale",
+          "missing_information",
+          "references"
+        ],
+        "title": "EvidenceAssessment",
+        "description": "Provider judgement, not a server-verified legal conclusion."
+      },
+      "EvidenceReference": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "source",
+              "document"
+            ],
+            "title": "Kind"
+          },
+          "reference_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Reference Id"
+          },
+          "quote": {
+            "type": "string",
+            "maxLength": 1600,
+            "minLength": 8,
+            "title": "Quote"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "reference_id",
+          "quote"
+        ],
+        "title": "EvidenceReference"
+      },
+      "FinanceReport": {
+        "properties": {
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          },
+          "method": {
+            "type": "string",
+            "title": "Method",
+            "default": "Decimal; inclusive dates; previous period of equal length; no FX conversion"
+          },
+          "current": {
+            "$ref": "#/components/schemas/CashPeriod"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/CashPeriod"
+          },
+          "net_change": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Change"
+          },
+          "plan_fact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanFact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "payables_as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "Payables As Of"
+          },
+          "payables": {
+            "items": {
+              "$ref": "#/components/schemas/Payable"
+            },
+            "type": "array",
+            "title": "Payables"
+          },
+          "aging": {
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+            },
+            "type": "object",
+            "title": "Aging"
+          },
+          "total_outstanding": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Outstanding"
+          },
+          "total_overpayment": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Overpayment"
+          },
+          "balances_as_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balances As Of"
+          },
+          "account_balance_dates": {
+            "additionalProperties": {
+              "type": "string",
+              "format": "date"
+            },
+            "type": "object",
+            "title": "Account Balance Dates"
+          },
+          "account_balances": {
+            "items": {
+              "$ref": "#/components/schemas/AccountBalance"
+            },
+            "type": "array",
+            "title": "Account Balances"
+          },
+          "total_bank_balance": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Bank Balance"
+          },
+          "receivables_as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "Receivables As Of"
+          },
+          "receivables": {
+            "items": {
+              "$ref": "#/components/schemas/ReceivablePosition"
+            },
+            "type": "array",
+            "title": "Receivables"
+          },
+          "receivable_aging": {
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+            },
+            "type": "object",
+            "title": "Receivable Aging"
+          },
+          "total_receivable": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Receivable"
+          },
+          "profit_and_loss": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfitAndLoss"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "dataset_version",
+          "current",
+          "previous",
+          "net_change",
+          "payables_as_of",
+          "payables",
+          "aging",
+          "total_outstanding",
+          "total_overpayment",
+          "balances_as_of",
+          "account_balance_dates",
+          "account_balances",
+          "total_bank_balance",
+          "receivables_as_of",
+          "receivables",
+          "receivable_aging",
+          "total_receivable"
+        ],
+        "title": "FinanceReport"
+      },
+      "Finding": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "risk_level": {
+            "$ref": "#/components/schemas/RiskLevel"
+          },
+          "blocks_draft": {
+            "type": "boolean",
+            "title": "Blocks Draft",
+            "default": false
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "title",
+          "description",
+          "risk_level"
+        ],
+        "title": "Finding"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "InvitationAccept": {
+        "properties": {
+          "invitation_token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Invitation Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "invitation_token"
+        ],
+        "title": "InvitationAccept"
+      },
+      "InvitationCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "pattern": "^(admin|auditor|accountant|lawyer|security)$",
+            "title": "Role"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "role"
+        ],
+        "title": "InvitationCreate"
+      },
+      "Invoice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "title": "Counterparty Id"
+          },
+          "contract_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contract Id"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Issued On"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Due On"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          },
+          "net": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Net"
+          },
+          "tax": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Tax"
+          },
+          "gross": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Gross"
+          },
+          "tax_rate": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,4}0*$",
+            "title": "Tax Rate"
+          },
+          "bank_fingerprint": {
+            "type": "string",
+            "title": "Bank Fingerprint"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "counterparty_id",
+          "contract_id",
+          "number",
+          "issued_on",
+          "due_on",
+          "net",
+          "tax",
+          "gross",
+          "tax_rate",
+          "bank_fingerprint"
+        ],
+        "title": "Invoice"
+      },
+      "LegalChangeCitation": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "locator": {
+            "type": "string",
+            "title": "Locator"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "title",
+          "version",
+          "locator",
+          "quote"
+        ],
+        "title": "LegalChangeCitation"
+      },
+      "LegalChangeItem": {
+        "properties": {
+          "change_id": {
+            "type": "string",
+            "title": "Change Id"
+          },
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "added",
+              "removed",
+              "modified"
+            ],
+            "title": "Change Type"
+          },
+          "impact_signal": {
+            "type": "string",
+            "enum": [
+              "high_attention",
+              "review",
+              "informational"
+            ],
+            "title": "Impact Signal"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "matched_terms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Terms"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalChangeCitation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalChangeCitation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "change_id",
+          "change_type",
+          "impact_signal",
+          "summary",
+          "matched_terms"
+        ],
+        "title": "LegalChangeItem"
+      },
+      "LegalChangeRadarCreate": {
+        "properties": {
+          "baseline_source_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Baseline Source Id"
+          },
+          "current_source_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Current Source Id"
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Subject"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "baseline_source_id",
+          "current_source_id",
+          "subject",
+          "jurisdiction",
+          "effective_on"
+        ],
+        "title": "LegalChangeRadarCreate"
+      },
+      "LegalChangeRadarResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_legal_review",
+              "no_text_change"
+            ],
+            "title": "Status"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          },
+          "baseline": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Baseline"
+          },
+          "current": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Current"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/LegalChangeItem"
+            },
+            "type": "array",
+            "title": "Changes"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "consultant_plus": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Consultant Plus"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "disclaimer",
+          "jurisdiction",
+          "effective_on",
+          "baseline",
+          "current",
+          "changes",
+          "counts",
+          "consultant_plus",
+          "warnings"
+        ],
+        "title": "LegalChangeRadarResult"
+      },
+      "LegalChangeRadarRunResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "baseline_source_id": {
+            "type": "string",
+            "title": "Baseline Source Id"
+          },
+          "current_source_id": {
+            "type": "string",
+            "title": "Current Source Id"
+          },
+          "subject": {
+            "type": "string",
+            "title": "Subject"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "result": {
+            "$ref": "#/components/schemas/LegalChangeRadarResult"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalChangeReviewResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "baseline_source_id",
+          "current_source_id",
+          "subject",
+          "jurisdiction",
+          "effective_on",
+          "status",
+          "result",
+          "created_at"
+        ],
+        "title": "LegalChangeRadarRunResponse"
+      },
+      "LegalChangeReviewCreate": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "changes_requested",
+              "rejected"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 8,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "reason"
+        ],
+        "title": "LegalChangeReviewCreate"
+      },
+      "LegalChangeReviewResponse": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "changes_requested",
+              "rejected"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 8,
+            "title": "Reason"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "reviewer_id": {
+            "type": "string",
+            "title": "Reviewer Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "reason",
+          "id",
+          "reviewer_id",
+          "created_at"
+        ],
+        "title": "LegalChangeReviewResponse"
+      },
+      "LegalClarification": {
+        "properties": {
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "jurisdiction",
+          "effective_on"
+        ],
+        "title": "LegalClarification"
+      },
+      "LegalResult": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "legal_retrieval_pilot",
+              "legal_analysis_pilot"
+            ],
+            "title": "Mode",
+            "default": "legal_retrieval_pilot"
+          },
+          "jurisdiction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective On"
+          },
+          "legal_sources_found": {
+            "type": "boolean",
+            "title": "Legal Sources Found",
+            "default": false
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unresolved Questions"
+          },
+          "specialist_review_recommended": {
+            "type": "boolean",
+            "title": "Specialist Review Recommended",
+            "default": true
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentExcerpt"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "verified_references": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceReference"
+            },
+            "type": "array",
+            "title": "Verified References"
+          },
+          "analysis_model": {
+            "type": "string",
+            "title": "Analysis Model",
+            "default": "none-retrieval-only"
+          },
+          "analysis_attempted": {
+            "type": "boolean",
+            "title": "Analysis Attempted",
+            "default": false
+          },
+          "model_calls": {
+            "items": {
+              "$ref": "#/components/schemas/ModelCallInfo"
+            },
+            "type": "array",
+            "title": "Model Calls"
+          },
+          "evidence_assessment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceAssessment"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence_assessment_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Assessment Version"
+          },
+          "consultant_plus": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsultantPlusTrail"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retrieval_version": {
+            "type": "string",
+            "title": "Retrieval Version",
+            "default": "mock-hash-v1"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary",
+          "jurisdiction",
+          "effective_on"
+        ],
+        "title": "LegalResult"
+      },
+      "LegalSearchRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Query"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 2,
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "jurisdiction",
+          "effective_on"
+        ],
+        "title": "LegalSearchRequest"
+      },
+      "LicenseScope": {
+        "properties": {
+          "jurisdictions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Jurisdictions"
+          },
+          "allowed_channels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Channels"
+          },
+          "scope_owner": {
+            "type": "string",
+            "title": "Scope Owner"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          }
+        },
+        "type": "object",
+        "required": [
+          "jurisdictions",
+          "allowed_channels",
+          "scope_owner"
+        ],
+        "title": "LicenseScope"
+      },
+      "LogoutRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Refresh Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "LogoutRequest"
+      },
+      "ModelCallInfo": {
+        "properties": {
+          "schema_name": {
+            "type": "string",
+            "title": "Schema Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "latency_ms": {
+            "type": "integer",
+            "title": "Latency Ms"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "cache_read_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Read Tokens"
+          },
+          "cache_write_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cache Write Tokens"
+          },
+          "cost": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schema_name",
+          "status",
+          "latency_ms"
+        ],
+        "title": "ModelCallInfo"
+      },
+      "NonpaymentRisk": {
+        "properties": {
+          "counterparty_id": {
+            "type": "string",
+            "title": "Counterparty Id"
+          },
+          "counterparty_name": {
+            "type": "string",
+            "title": "Counterparty Name"
+          },
+          "outstanding": {
+            "type": "string",
+            "title": "Outstanding"
+          },
+          "days_overdue": {
+            "type": "integer",
+            "title": "Days Overdue"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation"
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counterparty_id",
+          "counterparty_name",
+          "outstanding",
+          "days_overdue",
+          "explanation",
+          "recommended_action"
+        ],
+        "title": "NonpaymentRisk"
+      },
+      "OfficeResult": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "const": "office_mock_v1",
+            "title": "Mode",
+            "default": "office_mock_v1"
+          },
+          "accounting": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccountingResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "legal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LegalResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "security": {
+            "$ref": "#/components/schemas/SecurityResult"
+          },
+          "policy_decision": {
+            "$ref": "#/components/schemas/PolicyDecision"
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version",
+            "default": "tz-v2.1-policy-v1"
+          },
+          "policy_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Policy Reasons"
+          },
+          "approval_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval Id"
+          },
+          "draft_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary",
+          "security",
+          "policy_decision"
+        ],
+        "title": "OfficeResult"
+      },
+      "OidcSessionRequest": {
+        "properties": {
+          "id_token": {
+            "type": "string",
+            "maxLength": 8192,
+            "minLength": 8,
+            "title": "Id Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id_token"
+        ],
+        "title": "OidcSessionRequest"
+      },
+      "Payable": {
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "title": "Invoice Id"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "title": "Counterparty Id"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Due On"
+          },
+          "gross": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Gross"
+          },
+          "paid": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Paid"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Outstanding"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Overpayment"
+          },
+          "days_overdue": {
+            "type": "integer",
+            "title": "Days Overdue"
+          },
+          "payment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Payment Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "counterparty_id",
+          "due_on",
+          "gross",
+          "paid",
+          "outstanding",
+          "overpayment",
+          "days_overdue",
+          "payment_ids"
+        ],
+        "title": "Payable"
+      },
+      "Payment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "invoice_id": {
+            "type": "string",
+            "title": "Invoice Id"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "paid_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Paid On"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "invoice_id",
+          "amount",
+          "paid_on"
+        ],
+        "title": "Payment"
+      },
+      "PlanFact": {
+        "properties": {
+          "basis": {
+            "type": "string",
+            "const": "user_supplied_cash_plan",
+            "title": "Basis",
+            "default": "user_supplied_cash_plan"
+          },
+          "planned_incoming": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Planned Incoming"
+          },
+          "planned_outgoing": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Planned Outgoing"
+          },
+          "incoming_variance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Incoming Variance"
+          },
+          "outgoing_variance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Outgoing Variance"
+          },
+          "net_variance": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Net Variance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "planned_incoming",
+          "planned_outgoing",
+          "incoming_variance",
+          "outgoing_variance",
+          "net_variance"
+        ],
+        "title": "PlanFact"
+      },
+      "PolicyDecision": {
+        "type": "string",
+        "enum": [
+          "allow_read",
+          "allow_draft",
+          "require_owner_approval",
+          "deny",
+          "escalate",
+          "owner_only_outside_agent"
+        ],
+        "title": "PolicyDecision",
+        "description": "Deterministic Policy Gate outcomes (TZ V2.1 section 7.2)."
+      },
+      "ProcessControlReport": {
+        "properties": {
+          "window_started": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Started"
+          },
+          "office_results": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Office Results"
+          },
+          "postflight_completed": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Postflight Completed"
+          },
+          "postflight_coverage": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Postflight Coverage"
+          },
+          "policy_decisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Policy Decisions"
+          },
+          "control_flags": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Control Flags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window_started",
+          "office_results",
+          "postflight_completed",
+          "postflight_coverage",
+          "policy_decisions",
+          "control_flags"
+        ],
+        "title": "ProcessControlReport",
+        "description": "Read-only operational controls for completed office results."
+      },
+      "ProcessDefinition": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "result_owner_id": {
+            "type": "string",
+            "title": "Result Owner Id"
+          },
+          "reviewer_roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reviewer Roles",
+            "default": [
+              "owner"
+            ]
+          },
+          "acceptance_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Acceptance Checks"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "default": [
+              "analyze",
+              "prepare_payment_draft"
+            ]
+          },
+          "forbidden_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Forbidden Actions",
+            "default": [
+              "real_payment"
+            ]
+          },
+          "autonomy_level": {
+            "type": "string",
+            "const": "review_required",
+            "title": "Autonomy Level",
+            "default": "review_required"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "title",
+          "result_owner_id",
+          "acceptance_checks"
+        ],
+        "title": "ProcessDefinition"
+      },
+      "ProcessDefinitionV2": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "const": 2,
+            "title": "Version",
+            "default": 2
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "result_owner_id": {
+            "type": "string",
+            "title": "Result Owner Id"
+          },
+          "reviewer_roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reviewer Roles",
+            "default": [
+              "owner"
+            ]
+          },
+          "acceptance_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Acceptance Checks"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "default": [
+              "analyze",
+              "prepare_payment_draft"
+            ]
+          },
+          "forbidden_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Forbidden Actions",
+            "default": [
+              "real_payment"
+            ]
+          },
+          "autonomy_level": {
+            "type": "string",
+            "const": "review_required",
+            "title": "Autonomy Level",
+            "default": "review_required"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessNodeSpec"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Nodes"
+          },
+          "run_budget": {
+            "$ref": "#/components/schemas/RunBudget"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "result_owner_id",
+          "acceptance_checks",
+          "nodes",
+          "run_budget"
+        ],
+        "title": "ProcessDefinitionV2",
+        "description": "An executable, review-required process definition.\n\nIt is application configuration rather than model-generated instructions and\nis snapshotted on a task before its first node starts."
+      },
+      "ProcessDefinitionV3": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "integer",
+            "const": 3,
+            "title": "Version",
+            "default": 3
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "result_owner_id": {
+            "type": "string",
+            "title": "Result Owner Id"
+          },
+          "reviewer_roles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reviewer Roles",
+            "default": [
+              "owner"
+            ]
+          },
+          "acceptance_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Acceptance Checks"
+          },
+          "allowed_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Actions",
+            "default": [
+              "analyze",
+              "prepare_payment_draft"
+            ]
+          },
+          "forbidden_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Forbidden Actions",
+            "default": [
+              "real_payment"
+            ]
+          },
+          "autonomy_level": {
+            "type": "string",
+            "enum": [
+              "a0_shadow",
+              "a1_recommendation",
+              "a2_draft",
+              "a3_approved_action"
+            ],
+            "title": "Autonomy Level",
+            "default": "a2_draft"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "output_schema_version": {
+            "type": "string",
+            "title": "Output Schema Version"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessNodeSpec"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Nodes"
+          },
+          "run_budget": {
+            "$ref": "#/components/schemas/RunBudget"
+          },
+          "passport": {
+            "$ref": "#/components/schemas/ProcessPassport"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "result_owner_id",
+          "acceptance_checks",
+          "policy_version",
+          "output_schema_version",
+          "nodes",
+          "run_budget",
+          "passport"
+        ],
+        "title": "ProcessDefinitionV3",
+        "description": "V2 executable graph + immutable V3 passport, snapshotted per run."
+      },
+      "ProcessGraph": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "process_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Id"
+          },
+          "process_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Version"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessGraphNode"
+            },
+            "type": "array",
+            "title": "Nodes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "nodes"
+        ],
+        "title": "ProcessGraph"
+      },
+      "ProcessGraphNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "node_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Node Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "agent_step",
+              "result_review"
+            ],
+            "title": "Kind"
+          },
+          "agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent"
+          },
+          "action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action"
+          },
+          "state": {
+            "type": "string",
+            "title": "State"
+          },
+          "readiness": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "blocked",
+              "running",
+              "completed",
+              "failed",
+              "cancelled"
+            ],
+            "title": "Readiness"
+          },
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Depends On"
+          },
+          "blocked_by": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Blocked By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "readiness"
+        ],
+        "title": "ProcessGraphNode",
+        "description": "A materialized node in one task's execution graph."
+      },
+      "ProcessNodeSpec": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "title": "Id"
+          },
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Action"
+          },
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Depends On",
+            "default": []
+          },
+          "input_refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Input Refs",
+            "default": []
+          },
+          "risk_level": {
+            "$ref": "#/components/schemas/RiskLevel",
+            "default": "medium"
+          },
+          "expected_output_schema": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Expected Output Schema"
+          },
+          "retry_policy": {
+            "$ref": "#/components/schemas/RetryPolicy",
+            "default": {
+              "max_attempts": 1,
+              "retryable_error_codes": []
+            }
+          },
+          "estimated_llm_calls": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Estimated Llm Calls",
+            "default": 0
+          },
+          "estimated_cost_rub": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Estimated Cost Rub",
+            "default": "0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "agent",
+          "action",
+          "expected_output_schema"
+        ],
+        "title": "ProcessNodeSpec",
+        "description": "Stable node identity and its typed execution contract."
+      },
+      "ProcessPassport": {
+        "properties": {
+          "trigger": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Trigger"
+          },
+          "recipient": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Recipient"
+          },
+          "result": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Result"
+          },
+          "owner": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Owner"
+          },
+          "acceptance_criteria": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Acceptance Criteria"
+          },
+          "allowed_sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Allowed Sources"
+          },
+          "allowed_capabilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Allowed Capabilities"
+          },
+          "stop_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Stop Conditions"
+          },
+          "escalation": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Escalation"
+          },
+          "rollback": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Rollback"
+          },
+          "manual_fallback": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Manual Fallback"
+          },
+          "autonomy_ceiling": {
+            "type": "string",
+            "enum": [
+              "a0_shadow",
+              "a1_recommendation",
+              "a2_draft",
+              "a3_approved_action"
+            ],
+            "title": "Autonomy Ceiling",
+            "default": "a2_draft"
+          },
+          "metrics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Metrics"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "trigger",
+          "recipient",
+          "result",
+          "owner",
+          "acceptance_criteria",
+          "allowed_sources",
+          "allowed_capabilities",
+          "stop_conditions",
+          "escalation",
+          "rollback",
+          "manual_fallback",
+          "metrics"
+        ],
+        "title": "ProcessPassport",
+        "description": "The owner-facing contract fixed before any automation is allowed (TZ 3.2)."
+      },
+      "ProcessQualityReport": {
+        "properties": {
+          "window_started": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Started"
+          },
+          "completed_tasks": {
+            "type": "integer",
+            "title": "Completed Tasks"
+          },
+          "reviewed_results": {
+            "type": "integer",
+            "title": "Reviewed Results"
+          },
+          "pending_reviews": {
+            "type": "integer",
+            "title": "Pending Reviews"
+          },
+          "review_rate": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Review Rate"
+          },
+          "decisions": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Decisions"
+          },
+          "average_review_seconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Review Seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "window_started",
+          "completed_tasks",
+          "reviewed_results",
+          "pending_reviews",
+          "review_rate",
+          "decisions"
+        ],
+        "title": "ProcessQualityReport"
+      },
+      "ProcessRuntimeUpdate": {
+        "properties": {
+          "autonomy_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "a0_shadow",
+                  "a1_recommendation",
+                  "a2_draft",
+                  "a3_approved_action"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Autonomy Level"
+          },
+          "process_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process Enabled"
+          },
+          "llm_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Enabled"
+          },
+          "write_tools_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Write Tools Enabled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProcessRuntimeUpdate"
+      },
+      "ProfitAndLoss": {
+        "properties": {
+          "journal_version": {
+            "type": "string",
+            "title": "Journal Version"
+          },
+          "coverage_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Coverage Start"
+          },
+          "coverage_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Coverage End"
+          },
+          "basis": {
+            "type": "string",
+            "const": "synthetic_accrual_excluding_vat",
+            "title": "Basis",
+            "default": "synthetic_accrual_excluding_vat"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfitPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfitPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operating_profit_change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Profit Change"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "journal_version",
+          "coverage_start",
+          "coverage_end",
+          "current",
+          "previous",
+          "operating_profit_change",
+          "warnings"
+        ],
+        "title": "ProfitAndLoss"
+      },
+      "ProfitPeriod": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "revenue": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Revenue"
+          },
+          "cost_of_sales": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Cost Of Sales"
+          },
+          "gross_profit": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Gross Profit"
+          },
+          "operating_expense": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Operating Expense"
+          },
+          "depreciation": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Depreciation"
+          },
+          "operating_profit": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Operating Profit"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/AccrualEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "revenue",
+          "cost_of_sales",
+          "gross_profit",
+          "operating_expense",
+          "depreciation",
+          "operating_profit",
+          "entries"
+        ],
+        "title": "ProfitPeriod"
+      },
+      "Receivable": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "title": "Counterparty Id"
+          },
+          "issued_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Issued On"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Due On"
+          },
+          "gross": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Gross"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "counterparty_id",
+          "issued_on",
+          "due_on",
+          "gross"
+        ],
+        "title": "Receivable"
+      },
+      "ReceivablePosition": {
+        "properties": {
+          "receivable_id": {
+            "type": "string",
+            "title": "Receivable Id"
+          },
+          "counterparty_id": {
+            "type": "string",
+            "title": "Counterparty Id"
+          },
+          "due_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Due On"
+          },
+          "gross": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Gross"
+          },
+          "received": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Received"
+          },
+          "outstanding": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Outstanding"
+          },
+          "days_overdue": {
+            "type": "integer",
+            "title": "Days Overdue"
+          },
+          "receipt_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Receipt Ids"
+          },
+          "overpayment": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Overpayment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "receivable_id",
+          "counterparty_id",
+          "due_on",
+          "gross",
+          "received",
+          "outstanding",
+          "days_overdue",
+          "receipt_ids",
+          "overpayment"
+        ],
+        "title": "ReceivablePosition"
+      },
+      "ReceivableReceipt": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "receivable_id": {
+            "type": "string",
+            "title": "Receivable Id"
+          },
+          "received_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Received On"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)",
+            "title": "Amount"
+          },
+          "currency": {
+            "type": "string",
+            "const": "RUB",
+            "title": "Currency",
+            "default": "RUB"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "receivable_id",
+          "received_on",
+          "amount"
+        ],
+        "title": "ReceivableReceipt"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Refresh Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest"
+      },
+      "ReportRequest": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date",
+            "title": "End"
+          },
+          "planned_cash_in": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Cash In"
+          },
+          "planned_cash_out": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Cash Out"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "ReportRequest"
+      },
+      "ResultReviewCreate": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rework_required",
+              "rejected"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Reason"
+          },
+          "result_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Result Hash"
+          },
+          "target_node_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Target Node Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "decision",
+          "reason",
+          "result_hash"
+        ],
+        "title": "ResultReviewCreate"
+      },
+      "RetryPolicy": {
+        "properties": {
+          "max_attempts": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "default": 1
+          },
+          "retryable_error_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Retryable Error Codes",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RetryPolicy",
+        "description": "A bounded retry contract declared by the process author."
+      },
+      "RiskLevel": {
+        "type": "string",
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "title": "RiskLevel"
+      },
+      "RunBudget": {
+        "properties": {
+          "max_steps": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "default": 8
+          },
+          "max_llm_calls": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Max Llm Calls",
+            "default": 2
+          },
+          "max_rework_cycles": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Max Rework Cycles",
+            "default": 2
+          },
+          "max_runtime_seconds": {
+            "type": "integer",
+            "maximum": 3600.0,
+            "minimum": 1.0,
+            "title": "Max Runtime Seconds",
+            "default": 120
+          },
+          "max_input_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Input Tokens",
+            "default": 100000
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Max Output Tokens",
+            "default": 20000
+          },
+          "max_cost_rub": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Max Cost Rub",
+            "default": "100.00"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RunBudget",
+        "description": "Hard, persisted limits for a single process run."
+      },
+      "RunUsage": {
+        "properties": {
+          "steps_started": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Steps Started",
+            "default": 0
+          },
+          "llm_calls": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Llm Calls",
+            "default": 0
+          },
+          "rework_cycles": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rework Cycles",
+            "default": 0
+          },
+          "input_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "default": 0
+          },
+          "output_tokens": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "default": 0
+          },
+          "reserved_cost_rub": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Reserved Cost Rub",
+            "default": "0"
+          },
+          "observed_cost_rub": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Observed Cost Rub",
+            "default": "0"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RunUsage",
+        "description": "Additive counters written to the task before and after every node."
+      },
+      "ScheduleConfig": {
+        "properties": {
+          "process_id": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Process Id"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 3,
+            "title": "Timezone",
+            "default": "Europe/Riga"
+          },
+          "run_at": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Run At",
+            "default": "08:30"
+          },
+          "workdays_only": {
+            "type": "boolean",
+            "title": "Workdays Only",
+            "default": true
+          },
+          "max_attempts": {
+            "type": "integer",
+            "maximum": 3.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "default": 1
+          },
+          "retry_delay_minutes": {
+            "type": "integer",
+            "maximum": 720.0,
+            "minimum": 1.0,
+            "title": "Retry Delay Minutes",
+            "default": 30
+          },
+          "require_fresh_snapshot": {
+            "type": "boolean",
+            "title": "Require Fresh Snapshot",
+            "default": true
+          },
+          "snapshot_max_lag_hours": {
+            "type": "integer",
+            "maximum": 168.0,
+            "minimum": 1.0,
+            "title": "Snapshot Max Lag Hours",
+            "default": 12
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "process_id"
+        ],
+        "title": "ScheduleConfig"
+      },
+      "SearchHit": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "chunk_id": {
+            "type": "string",
+            "title": "Chunk Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "title": "Jurisdiction"
+          },
+          "document_type": {
+            "type": "string",
+            "title": "Document Type"
+          },
+          "authority": {
+            "type": "string",
+            "title": "Authority"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "locator": {
+            "type": "string",
+            "title": "Locator"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "article": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Article"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_id",
+          "chunk_id",
+          "title",
+          "version",
+          "jurisdiction",
+          "document_type",
+          "authority",
+          "effective_from",
+          "effective_to",
+          "text",
+          "locator",
+          "page",
+          "article",
+          "score"
+        ],
+        "title": "SearchHit"
+      },
+      "SearchRequest": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "pattern": "\\S",
+            "title": "Query"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective On"
+          },
+          "document_types": {
+            "items": {
+              "type": "string",
+              "maxLength": 255,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Document Types"
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "default": 5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "query",
+          "jurisdiction",
+          "effective_on"
+        ],
+        "title": "SearchRequest"
+      },
+      "SearchResponse": {
+        "properties": {
+          "hits": {
+            "items": {
+              "$ref": "#/components/schemas/SearchHit"
+            },
+            "type": "array",
+            "title": "Hits"
+          },
+          "embedding_model": {
+            "type": "string",
+            "title": "Embedding Model"
+          },
+          "embedding_dimensions": {
+            "type": "integer",
+            "title": "Embedding Dimensions",
+            "default": 128
+          },
+          "retrieval_version": {
+            "type": "string",
+            "title": "Retrieval Version",
+            "default": "mock-hash-lexical-v2"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hits",
+          "embedding_model"
+        ],
+        "title": "SearchResponse"
+      },
+      "SecurityResult": {
+        "properties": {
+          "agent": {
+            "$ref": "#/components/schemas/AgentType"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/Finding"
+            },
+            "type": "array",
+            "title": "Findings"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "recommended_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/Citation"
+            },
+            "type": "array",
+            "title": "Citations"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "default": false
+          },
+          "mode": {
+            "type": "string",
+            "const": "security_rules_v1",
+            "title": "Mode",
+            "default": "security_rules_v1"
+          },
+          "detections": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Detections"
+          },
+          "control_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Control Flags"
+          },
+          "external_transmission_allowed": {
+            "type": "boolean",
+            "title": "External Transmission Allowed",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent",
+          "status",
+          "summary"
+        ],
+        "title": "SecurityResult"
+      },
+      "SourceCreate": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Artifact Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Jurisdiction"
+          },
+          "document_type": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Document Type"
+          },
+          "authority": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Authority"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Version"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "APPROVED",
+              "ACTIVE",
+              "SUPERSEDED",
+              "EXPIRED",
+              "REVOKED"
+            ],
+            "title": "Status",
+            "default": "DRAFT"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED"
+            ],
+            "title": "Classification",
+            "default": "INTERNAL"
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$",
+            "title": "Language",
+            "default": "ru"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "title",
+          "jurisdiction",
+          "document_type",
+          "authority",
+          "version",
+          "effective_from"
+        ],
+        "title": "SourceCreate"
+      },
+      "SourceResponse": {
+        "properties": {
+          "artifact_id": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Artifact Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$",
+            "title": "Jurisdiction"
+          },
+          "document_type": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Document Type"
+          },
+          "authority": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Authority"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Version"
+          },
+          "effective_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "APPROVED",
+              "ACTIVE",
+              "SUPERSEDED",
+              "EXPIRED",
+              "REVOKED"
+            ],
+            "title": "Status",
+            "default": "DRAFT"
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "PUBLIC",
+              "INTERNAL",
+              "CONFIDENTIAL",
+              "RESTRICTED"
+            ],
+            "title": "Classification",
+            "default": "INTERNAL"
+          },
+          "language": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$",
+            "title": "Language",
+            "default": "ru"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "embedding_model": {
+            "type": "string",
+            "title": "Embedding Model"
+          },
+          "embedding_dimensions": {
+            "type": "integer",
+            "title": "Embedding Dimensions",
+            "default": 128
+          },
+          "chunk_count": {
+            "type": "integer",
+            "title": "Chunk Count"
+          },
+          "reindex_of_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reindex Of Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "title",
+          "jurisdiction",
+          "document_type",
+          "authority",
+          "version",
+          "effective_from",
+          "id",
+          "sha256",
+          "embedding_model",
+          "chunk_count"
+        ],
+        "title": "SourceResponse"
+      },
+      "SyncRequest": {
+        "properties": {
+          "request_key": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Request Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "request_key"
+        ],
+        "title": "SyncRequest"
+      },
+      "SyncResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version"
+          },
+          "snapshot_hash": {
+            "type": "string",
+            "title": "Snapshot Hash"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "mode": {
+            "type": "string",
+            "const": "on_demand_mock_snapshot_receipt",
+            "title": "Mode",
+            "default": "on_demand_mock_snapshot_receipt"
+          },
+          "real_1c_connected": {
+            "type": "boolean",
+            "const": false,
+            "title": "Real 1C Connected",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "dataset_version",
+          "snapshot_hash",
+          "counts",
+          "created_at"
+        ],
+        "title": "SyncResponse"
+      },
+      "TaskCategory": {
+        "type": "string",
+        "enum": [
+          "accounting",
+          "legal",
+          "security",
+          "mixed",
+          "unsupported"
+        ],
+        "title": "TaskCategory"
+      },
+      "TaskCreate": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "attachment_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Attachment Ids"
+          },
+          "requested_agent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AgentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "jurisdiction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jurisdiction"
+          },
+          "effective_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective On"
+          },
+          "invoice_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^inv_[0-9]{3}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Invoice Id"
+          },
+          "requested_action": {
+            "type": "string",
+            "enum": [
+              "analyze",
+              "prepare_payment_draft"
+            ],
+            "title": "Requested Action",
+            "default": "analyze"
+          },
+          "process_id": {
+            "type": "string",
+            "enum": [
+              "office_review",
+              "daily_cash_and_receivable_risk"
+            ],
+            "title": "Process Id",
+            "default": "office_review"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskResponse": {
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "title": "Task Id"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TaskState"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "risk_level": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RiskLevel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfficeResult"
+              },
+              {
+                "$ref": "#/components/schemas/LegalResult"
+              },
+              {
+                "$ref": "#/components/schemas/DailyOwnerDigest"
+              },
+              {
+                "$ref": "#/components/schemas/AgentResult"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "process": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcessDefinition"
+              },
+              {
+                "$ref": "#/components/schemas/ProcessDefinitionV2"
+              },
+              {
+                "$ref": "#/components/schemas/ProcessDefinitionV3"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Process"
+          },
+          "run_budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunBudget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_usage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunUsage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rework_parent_task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rework Parent Task Id"
+          },
+          "rework_target_node_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rework Target Node Ids"
+          },
+          "rework_cycle": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Rework Cycle",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_id",
+          "state",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TaskResponse"
+      },
+      "TaskState": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "queued",
+          "classifying",
+          "planning",
+          "running",
+          "waiting_input",
+          "waiting_source",
+          "waiting_approval",
+          "completed",
+          "failed",
+          "failed_safe",
+          "cancelled"
+        ],
+        "title": "TaskState"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

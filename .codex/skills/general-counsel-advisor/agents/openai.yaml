@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Office General Counsel"
+  short_description: "Legal issue spotting for AI Office workflows"
+  default_prompt: "Use $general-counsel-advisor to review this AI Office legal question."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI Office Team"
+  short_description: "Route AI Office work to the right role"
+  default_prompt: "Use $ai-office-team to choose the right project roles and handle this AI Office task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RAG Architect"
+  short_description: "Retrieval and grounding for AI Office legal RAG"
+  default_prompt: "Use $rag-architect to diagnose or improve this AI Office retrieval workflow."

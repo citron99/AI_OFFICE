@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Backend Engineer"
+  short_description: "FastAPI backend engineering for AI Office"
+  default_prompt: "Use $senior-backend to implement or review this AI Office backend change."

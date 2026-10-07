@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Architect"
+  short_description: "Architecture and ADRs for AI Office"
+  default_prompt: "Use $senior-architect to review this AI Office architecture decision."

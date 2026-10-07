@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Frontend Engineer"
+  short_description: "React and Vite engineering for AI Office"
+  default_prompt: "Use $senior-frontend to implement or review this AI Office UI change."

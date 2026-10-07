@@ -1,0 +1,101 @@
+services:
+  api:
+    build: .
+    environment: &app_environment
+      APP_ENV: development
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ai_office
+      REDIS_URL: redis://redis:6379/0
+      EXECUTION_MODE: queue
+      LLM_PROVIDER: mock
+      AUTO_CREATE_SCHEMA: "false"
+      UPLOAD_DIR: /app/uploads
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    ports:
+      - "127.0.0.1:${AI_OFFICE_API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    volumes:
+      - uploads:/app/uploads
+  worker:
+    build: .
+    environment: *app_environment
+    # --beat: single-node pilot runs the scheduler alongside the worker;
+    # split into a dedicated beat service for multi-node deployments.
+    command: ["celery", "-A", "app.jobs:celery_app", "worker", "--beat", "--schedule=/app/uploads/celerybeat-schedule", "--loglevel=WARNING", "--concurrency=2"]
+    stop_grace_period: 130s
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/uploads
+  dispatcher:
+    build: .
+    environment: *app_environment
+    command: ["python", "-m", "app.dispatcher"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:${AI_OFFICE_FRONTEND_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ai_office
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ai_office"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis_data:/data
+
+  # Optional S3-compatible object storage (TZ 9.5): docker compose --profile s3 up -d
+  # then set STORAGE_BACKEND=s3 and the S3_* variables for api and worker.
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    profiles: ["s3"]
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "127.0.0.1:9000:9000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  uploads:
+  redis_data:
+  minio_data:
