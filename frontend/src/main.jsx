@@ -20,6 +20,7 @@ import Navbar from "./components/ui/Navbar";
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { createApiClient, publicApi } from "./api/client";
 import {categories, filterTasks, filterInvoices} from "./workspaceView";
+import {money} from "./officeUI";
 
 const states = {
   queued: "В очереди", running: "В работе", waiting_input: "Нужны сведения",
@@ -47,9 +48,6 @@ const policyLabels = {
 };
 const evidenceLabels = {sufficient: "Достаточно", insufficient: "Недостаточно", partial: "Частично достаточно"};
 const agentLabels = {accountant: "Бухгалтер", lawyer: "Юрист", security: "Безопасность", orchestrator: "Оркестратор"};
-const money = value => new Intl.NumberFormat("ru-RU", {
-  style: "currency", currency: "RUB",
-}).format(Number(value || 0));
 const themeStorageKey = "ai-office-theme";
 
 function App() {

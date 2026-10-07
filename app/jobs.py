@@ -18,6 +18,21 @@ from app.services.tasks import TaskService
 
 settings = get_settings()
 celery_app: Any = Celery("ai_office", broker=settings.redis_url)
+
+
+def _make_task_service(session: Any, app: Any) -> TaskService:
+    """Factory: TaskService composition root with lawyer and knowledge wiring."""
+    return TaskService(
+        session,
+        app.state.orchestrator,
+        app.state.accounting_provider,
+        LawyerAgent(
+            KnowledgeService(session, settings, app.state.embedding_provider),
+            app.state.llm_provider if settings.legal_analysis_enabled else None,
+            consultant=app.state.consultant_provider,
+        ),
+        consultant=app.state.consultant_provider,
+    )
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
@@ -68,17 +83,7 @@ async def _run_due_schedules_async(runner: Any) -> int:
             results = await runner(
                 session,
                 provider=app.state.accounting_provider,
-                service_factory=lambda s: TaskService(
-                    s,
-                    app.state.orchestrator,
-                    app.state.accounting_provider,
-                    LawyerAgent(
-                        KnowledgeService(s, settings, app.state.embedding_provider),
-                        app.state.llm_provider if settings.legal_analysis_enabled else None,
-                        consultant=app.state.consultant_provider,
-                    ),
-                    consultant=app.state.consultant_provider,
-                ),
+                service_factory=lambda s: _make_task_service(s, app),
             )
             started = sum(1 for r in results if r.get("task_id"))
             for result in results:
@@ -140,17 +145,7 @@ async def execute_stored_task(task_id: str) -> None:
                         )
                         await session.commit()
                         return
-                    service = TaskService(
-                        session,
-                        app.state.orchestrator,
-                        app.state.accounting_provider,
-                        LawyerAgent(
-                            KnowledgeService(session, settings, app.state.embedding_provider),
-                            app.state.llm_provider if settings.legal_analysis_enabled else None,
-                            consultant=app.state.consultant_provider,
-                        ),
-                        consultant=app.state.consultant_provider,
-                    )
+                    service = _make_task_service(session, app)
                     await service._execute(
                         TaskCreate.model_validate(record.request_data),
                         user_id=record.user_id,

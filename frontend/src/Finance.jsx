@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import FinancialRiskView from "./FinancialRiskView";
+import {money} from "./officeUI";
 
-const money = value => new Intl.NumberFormat("ru-RU", {style: "currency", currency: "RUB"}).format(Number(value));
 const buckets = {not_due: "Срок не наступил", "1_30": "1–30 дней", "31_60": "31–60 дней", "61_90": "61–90 дней", over_90: "Более 90 дней"};
 
 export default function Finance({api, tasks = [], approvals = [], controls = null, onReportChange}) {

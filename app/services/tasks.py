@@ -96,6 +96,18 @@ class TaskService:
         self.lawyer = lawyer
         self.consultant = consultant
 
+    async def _verify_attachments(
+        self, attachment_ids: list[str], *, user_id: str, company_id: str
+    ) -> None:
+        for artifact_id in attachment_ids:
+            artifact = await self.session.get(ArtifactRecord, artifact_id)
+            if (
+                artifact is None
+                or artifact.owner_id != user_id
+                or artifact.company_id != company_id
+            ):
+                raise ArtifactNotFoundError(artifact_id)
+
     async def create_and_execute(
         self,
         payload: TaskCreate,
@@ -121,14 +133,7 @@ class TaskService:
     ) -> TaskResponse:
         from app.jobs import publish
 
-        for artifact_id in payload.attachment_ids:
-            artifact = await self.session.get(ArtifactRecord, artifact_id)
-            if (
-                artifact is None
-                or artifact.owner_id != user_id
-                or artifact.company_id != company_id
-            ):
-                raise ArtifactNotFoundError(artifact_id)
+        await self._verify_attachments(payload.attachment_ids, user_id=user_id, company_id=company_id)
         task, created = await self.repository.create_once(
             user_id=user_id,
             payload=payload,
@@ -323,14 +328,7 @@ class TaskService:
         idempotency_key: str | None = None,
         company_id: str,
     ) -> TaskResponse:
-        for artifact_id in payload.attachment_ids:
-            artifact = await self.session.get(ArtifactRecord, artifact_id)
-            if (
-                artifact is None
-                or artifact.owner_id != user_id
-                or artifact.company_id != company_id
-            ):
-                raise ArtifactNotFoundError(artifact_id)
+        await self._verify_attachments(payload.attachment_ids, user_id=user_id, company_id=company_id)
         if existing_task is not None:
             task = existing_task
         else:
@@ -356,12 +354,24 @@ class TaskService:
                 risk_level=routing.risk_level,
             )
             is_legal = self.lawyer is not None and routing.category == TaskCategory.LEGAL
-            if self.lawyer is not None and (
+            requires_office = (
                 payload.process_id == "daily_cash_and_receivable_risk"
-                or routing.category
-                in {TaskCategory.ACCOUNTING, TaskCategory.SECURITY, TaskCategory.MIXED}
+                or routing.category in {TaskCategory.ACCOUNTING, TaskCategory.SECURITY, TaskCategory.MIXED}
                 or payload.invoice_id is not None
-            ):
+            )
+            if requires_office and self.lawyer is None:
+                result = AgentResult(
+                    agent=AgentType.ORCHESTRATOR,
+                    status="unsupported",
+                    summary="Office flows require a lawyer agent; none is configured.",
+                    warnings=["LAWYER_UNAVAILABLE"],
+                )
+                await self.repository.set_result(task, result.model_dump(mode="json"))
+                audit(self.session, task, "office_requires_lawyer", {"process_id": payload.process_id})
+                await self._transition(task, TaskState.FAILED)
+                await self.session.commit()
+                return self.to_response(task)
+            if self.lawyer is not None and requires_office:
                 return await self._execute_office(task, payload, routing.required_agents, user_id)
             if is_legal and (payload.jurisdiction is None or payload.effective_on is None):
                 assert self.lawyer is not None
@@ -393,6 +403,24 @@ class TaskService:
             result: AgentResult
             if is_legal:
                 assert self.lawyer is not None
+                runtime = await get_runtime(
+                    self.session, company_id=company_id, process_id=payload.process_id
+                )
+                if not runtime.process_enabled:
+                    result = AgentResult(
+                        agent=AgentType.LAWYER,
+                        status="stopped_by_switch",
+                        summary=(
+                            "Процесс остановлен kill switch. Выполняется ручной режим; "
+                            "новые запуски запрещены до включения владельцем."
+                        ),
+                        warnings=["KILL_SWITCH_PROCESS"],
+                    )
+                    await self.repository.set_result(task, result.model_dump(mode="json"))
+                    audit(self.session, task, "kill_switch_stop", {"process_id": payload.process_id})
+                    await self._transition(task, TaskState.WAITING_INPUT)
+                    await self.session.commit()
+                    return self.to_response(task)
                 started = perf_counter()
                 result = await self.lawyer.execute(
                     text=payload.message,
@@ -403,6 +431,22 @@ class TaskService:
                     artifact_ids=payload.attachment_ids,
                 )
                 latency_ms = round((perf_counter() - started) * 1000)
+                self.session.add(
+                    ProviderCallRecord(
+                        company_id=company_id,
+                        task_id=task.id,
+                        step_id=step_records[0].id,
+                        node_id="legal_query",
+                        provider=AgentType.LAWYER.value,
+                        operation="legal_retrieval_pilot",
+                        machine_identity=machine_identity_for(AgentType.LAWYER),
+                        status="succeeded",
+                        attempt=1,
+                        result_hash=payload_hash(result.model_dump(mode="json")),
+                        latency_ms=latency_ms,
+                        finished_at=datetime.now(UTC),
+                    )
+                )
                 if isinstance(result, LegalResult):
                     self._audit_consultant_trail(task, result)
                 if result.status == "waiting_source":
