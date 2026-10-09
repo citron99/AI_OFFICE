@@ -37,3 +37,33 @@ async def test_hash_covers_values_and_original_receipt_is_stable(engine: AsyncEn
         assert repeated == original
         assert current.counts == original.counts
         assert current.snapshot_hash != original.snapshot_hash
+
+
+async def test_same_request_key_different_companies_creates_separate_records(
+    engine: AsyncEngine,
+):
+    provider = Mock1CConnector()
+    async with create_session_factory(engine)() as session:
+        receipt_a = await sync_snapshot(
+            session,
+            provider,
+            owner_id="multi-tenant-owner",
+            request_key="shared-key",
+            company_id="comp-a",
+        )
+        receipt_b = await sync_snapshot(
+            session,
+            provider,
+            owner_id="multi-tenant-owner",
+            request_key="shared-key",
+            company_id="comp-b",
+        )
+        assert receipt_a.id != receipt_b.id
+        repeat_a = await sync_snapshot(
+            session,
+            provider,
+            owner_id="multi-tenant-owner",
+            request_key="shared-key",
+            company_id="comp-a",
+        )
+        assert repeat_a.id == receipt_a.id

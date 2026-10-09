@@ -42,6 +42,7 @@ async def sync_snapshot(
     company_id: str = "comp_demo",
 ) -> SyncResponse:
     query = select(AccountingSyncRecord).where(
+        AccountingSyncRecord.company_id == company_id,
         AccountingSyncRecord.owner_id == owner_id,
         AccountingSyncRecord.request_key == request_key,
     )

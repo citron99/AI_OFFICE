@@ -10,7 +10,9 @@ from app.db.base import Base
 
 class AccountingSyncRecord(Base):
     __tablename__ = "accounting_sync_runs"
-    __table_args__ = (UniqueConstraint("owner_id", "request_key", name="uq_sync_owner_key"),)
+    __table_args__ = (
+        UniqueConstraint("company_id", "owner_id", "request_key", name="uq_sync_company_owner_key"),
+    )
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("sync"))
     company_id: Mapped[str | None] = mapped_column(String(40), index=True)
     owner_id: Mapped[str] = mapped_column(String(40), index=True)
