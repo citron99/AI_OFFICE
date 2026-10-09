@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.config import Settings
 from app.db.session import create_session_factory
+from app.db.tables.accounting_sync import AccountingSyncRecord
 from app.db.tables.approvals import ApprovalRecord
 from app.main import create_app
 
@@ -274,3 +275,40 @@ async def test_auth_isolation_and_read_only_role(engine: AsyncEngine, tmp_path: 
             ).status_code == 200
             assert (await c.post("/api/v1/tasks", json={"message": "invoice"})).status_code == 403
             assert (await c.get(f"/api/v1/tasks/{task['task_id']}")).status_code == 200
+
+
+async def test_tenant_queries_exclude_null_company_id(engine: AsyncEngine, tmp_path: Path) -> None:
+    """Legacy records with company_id=NULL must not leak into tenant-scoped lists."""
+    settings = Settings(
+        app_env="test",
+        auth_mode="api_key",
+        upload_dir=tmp_path,
+        auth_token_hashes={
+            hashlib.sha256(b"test-tenant-owner").hexdigest(): {
+                "user_id": "tenant-owner",
+                "role": "owner",
+            }
+        },
+    )
+    app = create_app(
+        settings=settings, engine=engine, session_factory=create_session_factory(engine)
+    )
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app), base_url="http://test"
+        ) as c:
+            c.headers["Authorization"] = "Bearer test-tenant-owner"
+            async with create_session_factory(engine)() as session:
+                session.add(
+                    AccountingSyncRecord(
+                        company_id=None,
+                        owner_id="tenant-owner",
+                        request_key="legacy-sync",
+                        dataset_version="v1",
+                        snapshot_hash="abc",
+                        counts={},
+                    )
+                )
+                await session.commit()
+            sync_runs = await c.get("/api/v1/accounting/sync-runs")
+            assert sync_runs.json() == []

@@ -55,7 +55,7 @@ async def accounting_sync_runs(
         select(AccountingSyncRecord)
         .where(
             AccountingSyncRecord.owner_id == principal.user_id,
-            AccountingSyncRecord.company_id.in_([principal.company_id, None]),
+            AccountingSyncRecord.company_id == principal.company_id,
         )
         .order_by(AccountingSyncRecord.created_at.desc())
         .limit(100)
@@ -191,7 +191,7 @@ async def trace(
         .where(
             AuditRecord.task_id == task_id,
             AuditRecord.owner_id == principal.user_id,
-            AuditRecord.company_id.in_([principal.company_id, None]),
+            AuditRecord.company_id == principal.company_id,
         )
         .order_by(AuditRecord.created_at)
     )
@@ -232,7 +232,7 @@ async def activity(
         select(AuditRecord)
         .where(
             AuditRecord.owner_id == principal.user_id,
-            AuditRecord.company_id.in_([principal.company_id, None]),
+            AuditRecord.company_id == principal.company_id,
         )
         .order_by(AuditRecord.created_at.desc())
         .limit(limit)
@@ -289,7 +289,7 @@ async def approvals(
         select(ApprovalRecord)
         .where(
             ApprovalRecord.owner_id == principal.user_id,
-            ApprovalRecord.company_id.in_([principal.company_id, None]),
+            ApprovalRecord.company_id == principal.company_id,
         )
         .order_by(ApprovalRecord.expires_at.desc())
         .limit(limit)
@@ -341,7 +341,7 @@ async def drafts(
         select(DraftRecord)
         .where(
             DraftRecord.owner_id == principal.user_id,
-            DraftRecord.company_id.in_([principal.company_id, None]),
+            DraftRecord.company_id == principal.company_id,
         )
         .order_by(DraftRecord.created_at.desc())
         .limit(limit)
