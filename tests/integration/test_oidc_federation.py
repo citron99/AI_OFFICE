@@ -182,3 +182,29 @@ async def test_oidc_subject_cannot_take_over_existing_email(
         with patch("httpx.AsyncClient", side_effect=lambda **kw: first_issuer.client_factory()):
             repeated = await mint_oidc_session(session, application.state.settings, "ok-token")
     assert repeated["user_id"] == first["user_id"]
+
+
+async def test_oidc_missing_company_claim_fails_closed(
+    oidc_app: tuple[httpx.AsyncClient, FastAPI],
+) -> None:
+    """Without `office_company` the caller must not land in the pilot tenant."""
+    from unittest.mock import patch
+
+    from app.services.sessions import OidcIdentityError, mint_oidc_session
+
+    client, application = oidc_app
+    issuer = StubIssuer(
+        claims={
+            "sub": "no-tenant-user",
+            "email": "no.tenant@example.com",
+            "email_verified": True,
+            "office_role": "auditor",
+        }
+    )
+    session_factory = create_session_factory(
+        client._transport.app.state.engine  # noqa: SLF001
+    )
+    async with session_factory() as session:
+        with patch("httpx.AsyncClient", side_effect=lambda **kw: issuer.client_factory()):
+            with pytest.raises(OidcIdentityError, match="company claim is required"):
+                await mint_oidc_session(session, application.state.settings, "ok-token")

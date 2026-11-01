@@ -370,8 +370,13 @@ async def verify_oidc_identity(
     allowed = {"owner", "admin", "auditor", "accountant", "lawyer", "security"}
     if role not in allowed:
         role = settings.oidc_default_role
-    company = claims.get(settings.oidc_company_claim) or "comp_demo"
-    if not isinstance(company, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", company):
+    company = claims.get(settings.oidc_company_claim)
+    if not isinstance(company, str) or not company:
+        # Silent fallback to `comp_demo` would drop a real IdP identity into
+        # the synthetic pilot tenant and let one company's drafts, agent runs
+        # and audit rows leak into another's. Missing claim ⇒ reject.
+        raise OidcIdentityError("OIDC company claim is required")
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", company):
         raise OidcIdentityError("OIDC company claim is invalid")
     email = claims.get("email", "")
     if not isinstance(email, str):
