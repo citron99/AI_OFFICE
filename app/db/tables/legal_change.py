@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import JSON, Date, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, Date, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import new_id
@@ -12,6 +12,7 @@ class LegalChangeRadarRunRecord(Base):
     __tablename__ = "legal_change_radar_runs"
     __table_args__ = (
         UniqueConstraint("company_id", "idempotency_key", name="uq_legal_radar_idempotency"),
+        Index("ix_legal_radar_company_owner_created", "company_id", "owner_id", "created_at"),
     )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("lcr"))
