@@ -83,8 +83,31 @@ async def guarded_licensed_search(
             query=query, jurisdiction=jurisdiction, effective_on=effective_on, limit=limit
         )
     except ConsultantPlusUnavailableError as error:
+        # Every permitted crossing (or attempt) must be journalled for LEG-008,
+        # including provider failures: silently raising would erase the fact
+        # that the query crossed the perimeter.
+        session.add(
+            ConsultantPlusSearchEventRecord(
+                company_id=company_id,
+                owner_id=owner_id,
+                outcome="unavailable",
+                jurisdiction=jurisdiction,
+                details={**_verdict_details(verdict, channel=channel), "error": str(error)},
+            )
+        )
+        await session.commit()
         raise HTTPException(503, str(error)) from None
     except LicenseScopeExceededError as error:
+        session.add(
+            ConsultantPlusSearchEventRecord(
+                company_id=company_id,
+                owner_id=owner_id,
+                outcome="scope_exceeded",
+                jurisdiction=jurisdiction,
+                details={**_verdict_details(verdict, channel=channel), "error": str(error)},
+            )
+        )
+        await session.commit()
         raise HTTPException(403, str(error)) from None
 
     if not results:
