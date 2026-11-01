@@ -18,6 +18,23 @@ AUTONOMY_LEVELS: tuple[str, ...] = (
     "a3_approved_action",
 )
 
+# TZ 7.1: only A2+ sits on the autonomy ladder high enough to produce drafts.
+DRAFT_AUTONOMY_LEVELS: frozenset[str] = frozenset({"a2_draft", "a3_approved_action"})
+
+
+def runtime_allows_draft(runtime: "ProcessRuntimeState") -> bool:
+    """Single source of truth for "may this runtime still create a payment draft?".
+
+    Used by the policy gate at run time and re-checked at approval decision time,
+    so an OWNER who flips a kill switch or lowers the autonomy ceiling while an
+    approval sits pending cannot have the draft slip through (TZ 7.1, REL-006).
+    """
+    return (
+        runtime.process_enabled
+        and runtime.write_tools_enabled
+        and runtime.autonomy_level in DRAFT_AUTONOMY_LEVELS
+    )
+
 
 class ProcessRuntimeState(BaseModel):
     model_config = ConfigDict(from_attributes=True)

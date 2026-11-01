@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.tables.approvals import ApprovalRecord, AuditRecord, DraftRecord
 from app.db.tables.tasks import TaskRecord
 from app.models.office import OfficeResult
+from app.services.contour_state import get_runtime, runtime_allows_draft
 
 
 def payload_hash(payload: dict[str, Any]) -> str:
@@ -77,11 +78,14 @@ async def decide_approval(
     *,
     owner_id: str,
     approve: bool,
-    company_id: str = "comp_demo",
+    company_id: str,
 ) -> TaskRecord:
     # Lock order is task -> approval in all mutating paths.
     preview = await session.get(ApprovalRecord, approval_id)
-    if preview is None or preview.owner_id != owner_id:
+    if preview is None or preview.owner_id != owner_id or preview.company_id != company_id:
+        # Tenant + owner boundary: an approval from another company is a 404, not
+        # a leak. company_id is required (no demo fallback) so a future call site
+        # cannot silently operate on comp_demo.
         raise HTTPException(404, "Approval not found")
     task = await session.scalar(
         select(TaskRecord)
@@ -122,6 +126,25 @@ async def decide_approval(
         audit(session, task, "approval_invalidated", {"approval_id": record.id})
         await session.commit()
         raise HTTPException(409, "Approval payload changed; request invalidated")
+    if approve:
+        # Re-check the runtime ceiling at DECISION time (TZ 7.1 / REL-006): the task
+        # was policy-cleared when it started, but an OWNER who flips the process or
+        # write-tools kill switch, or lowers the autonomy ladder below A2 during the
+        # 15-minute approval TTL, must block the draft. Rejecting stays always safe,
+        # so this gate is enforced only on the approve branch.
+        process_id = str((task.request_data or {}).get("process_id", "office_review"))
+        runtime = await get_runtime(session, company_id=company_id, process_id=process_id)
+        if not runtime_allows_draft(runtime):
+            record.status = "invalidated"
+            record.invalidated_at = now
+            audit(
+                session,
+                task,
+                "approval_invalidated_gate",
+                {"approval_id": record.id, "process_id": process_id},
+            )
+            await session.commit()
+            raise HTTPException(409, "Runtime gate no longer permits this draft")
     changed = await session.execute(
         update(ApprovalRecord)
         .where(
