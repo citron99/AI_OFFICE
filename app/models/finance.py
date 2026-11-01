@@ -9,9 +9,21 @@ from app.models.accrual import AccrualEntry
 
 
 class ReportRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    start: date
-    end: date
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "start": "2026-10-01",
+                    "end": "2026-10-31",
+                    "planned_cash_in": {"amount": "1200000.00", "currency": "RUB"},
+                    "planned_cash_out": {"amount": "950000.00", "currency": "RUB"},
+                }
+            ]
+        },
+    )
+    start: date = Field(examples=["2026-10-01"])
+    end: date = Field(examples=["2026-10-31"])
     planned_cash_in: Money | None = None
     planned_cash_out: Money | None = None
 

@@ -1286,10 +1286,19 @@ export interface components {
              */
             invoice_count: number;
         };
-        /** DecisionRequest */
+        /**
+         * DecisionRequest
+         * @example {
+         *       "decision": "approve"
+         *     }
+         * @example {
+         *       "decision": "reject"
+         *     }
+         */
         DecisionRequest: {
             /**
              * Decision
+             * @description Explicit human verdict on the pending approval. Agents never set this field; the OWNER role is required by the endpoint.
              * @enum {string}
              */
             decision: "approve" | "reject";
@@ -1422,19 +1431,36 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** InvitationAccept */
+        /**
+         * InvitationAccept
+         * @example {
+         *       "invitation_token": "inv_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGH"
+         *     }
+         */
         InvitationAccept: {
-            /** Invitation Token */
+            /**
+             * Invitation Token
+             * @description Single-use token returned by POST /api/v1/auth/invitations.
+             */
             invitation_token: string;
         };
-        /** InvitationCreate */
+        /**
+         * InvitationCreate
+         * @example {
+         *       "email": "lawyer@office.example",
+         *       "role": "lawyer"
+         *     }
+         */
         InvitationCreate: {
             /**
              * Email
              * Format: email
              */
             email: string;
-            /** Role */
+            /**
+             * Role
+             * @description Server-assigned capability set for the invited principal.
+             */
             role: string;
         };
         /** Invoice */
@@ -1699,15 +1725,32 @@ export interface components {
              */
             retrieval_version: string;
         };
-        /** LegalSearchRequest */
+        /**
+         * LegalSearchRequest
+         * @example {
+         *       "effective_on": "2026-01-01",
+         *       "jurisdiction": "RU",
+         *       "query": "срок хранения первичных документов по НДС"
+         *     }
+         */
         LegalSearchRequest: {
-            /** Query */
+            /**
+             * Query
+             * @description Free text sent to the licensed provider via the egress gateway. DLP-classified RESTRICTED payloads are refused before the crossing and the decision is journalled.
+             * @example срок хранения первичных документов по НДС
+             */
             query: string;
-            /** Jurisdiction */
+            /**
+             * Jurisdiction
+             * @description ISO-3166 alpha-2 code of the legal system to search.
+             * @example RU
+             */
             jurisdiction: string;
             /**
              * Effective On
              * Format: date
+             * @description Point in time at which the answer must be valid.
+             * @example 2026-01-01
              */
             effective_on: string;
         };
@@ -1722,7 +1765,12 @@ export interface components {
             /** Valid Until */
             valid_until?: string | null;
         };
-        /** LogoutRequest */
+        /**
+         * LogoutRequest
+         * @example {
+         *       "refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"
+         *     }
+         */
         LogoutRequest: {
             /** Refresh Token */
             refresh_token: string;
@@ -1808,9 +1856,17 @@ export interface components {
             /** Draft Id */
             draft_id?: string | null;
         };
-        /** OidcSessionRequest */
+        /**
+         * OidcSessionRequest
+         * @example {
+         *       "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImdhdGV3YXksInR5cCI6IkpXVCJ9.…signature-omitted-in-docs…"
+         *     }
+         */
         OidcSessionRequest: {
-            /** Id Token */
+            /**
+             * Id Token
+             * @description Verified OIDC assertion from the configured IdP.
+             */
             id_token: string;
         };
         /** Payable */
@@ -2338,21 +2394,45 @@ export interface components {
              */
             currency: "RUB";
         };
-        /** RefreshRequest */
+        /**
+         * RefreshRequest
+         * @example {
+         *       "refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"
+         *     }
+         */
         RefreshRequest: {
-            /** Refresh Token */
+            /**
+             * Refresh Token
+             * @description Opaque token kept in memory by the SPA; never persisted to localStorage.
+             */
             refresh_token: string;
         };
-        /** ReportRequest */
+        /**
+         * ReportRequest
+         * @example {
+         *       "end": "2026-10-31",
+         *       "planned_cash_in": {
+         *         "amount": "1200000.00",
+         *         "currency": "RUB"
+         *       },
+         *       "planned_cash_out": {
+         *         "amount": "950000.00",
+         *         "currency": "RUB"
+         *       },
+         *       "start": "2026-10-01"
+         *     }
+         */
         ReportRequest: {
             /**
              * Start
              * Format: date
+             * @example 2026-10-01
              */
             start: string;
             /**
              * End
              * Format: date
+             * @example 2026-10-31
              */
             end: string;
             /** Planned Cash In */
@@ -2558,15 +2638,30 @@ export interface components {
             /** Score */
             score: number;
         };
-        /** SearchRequest */
+        /**
+         * SearchRequest
+         * @example {
+         *       "document_types": [
+         *         "code"
+         *       ],
+         *       "effective_on": "2026-01-01",
+         *       "jurisdiction": "RU",
+         *       "query": "какие документы подтверждают право на вычет НДС",
+         *       "top_k": 5
+         *     }
+         */
         SearchRequest: {
             /** Query */
             query: string;
-            /** Jurisdiction */
+            /**
+             * Jurisdiction
+             * @example RU
+             */
             jurisdiction: string;
             /**
              * Effective On
              * Format: date
+             * @description Only sources whose effective interval covers this date are retrieved.
              */
             effective_on: string;
             /** Document Types */
@@ -2636,15 +2731,39 @@ export interface components {
              */
             external_transmission_allowed: boolean;
         };
-        /** SourceCreate */
+        /**
+         * SourceCreate
+         * @example {
+         *       "artifact_id": "art_01JZK4Q9T2XW8V5R3N6Y7B0C",
+         *       "authority": "Государственная Дума РФ",
+         *       "classification": "PUBLIC",
+         *       "document_type": "code",
+         *       "effective_from": "2026-01-01",
+         *       "jurisdiction": "RU",
+         *       "language": "ru",
+         *       "status": "ACTIVE",
+         *       "title": "НК РФ, часть первая",
+         *       "version": "2026-01-01"
+         *     }
+         */
         SourceCreate: {
-            /** Artifact Id */
+            /**
+             * Artifact Id
+             * @description Id returned by POST /api/v1/files after the DLP scan.
+             */
             artifact_id: string;
             /** Title */
             title: string;
-            /** Jurisdiction */
+            /**
+             * Jurisdiction
+             * @description ISO-3166 alpha-2.
+             * @example RU
+             */
             jurisdiction: string;
-            /** Document Type */
+            /**
+             * Document Type
+             * @description 'code', 'fz', 'letter', 'ruling', ….
+             */
             document_type: string;
             /** Authority */
             authority: string;
@@ -2665,6 +2784,7 @@ export interface components {
             status: "DRAFT" | "APPROVED" | "ACTIVE" | "SUPERSEDED" | "EXPIRED" | "REVOKED";
             /**
              * Classification
+             * @description Server re-computes this from DLP findings; a client-supplied value is treated as a hint and the stricter class wins.
              * @default INTERNAL
              * @enum {string}
              */
@@ -2675,15 +2795,39 @@ export interface components {
              */
             language: string;
         };
-        /** SourceResponse */
+        /**
+         * SourceResponse
+         * @example {
+         *       "artifact_id": "art_01JZK4Q9T2XW8V5R3N6Y7B0C",
+         *       "authority": "Государственная Дума РФ",
+         *       "classification": "PUBLIC",
+         *       "document_type": "code",
+         *       "effective_from": "2026-01-01",
+         *       "jurisdiction": "RU",
+         *       "language": "ru",
+         *       "status": "ACTIVE",
+         *       "title": "НК РФ, часть первая",
+         *       "version": "2026-01-01"
+         *     }
+         */
         SourceResponse: {
-            /** Artifact Id */
+            /**
+             * Artifact Id
+             * @description Id returned by POST /api/v1/files after the DLP scan.
+             */
             artifact_id: string;
             /** Title */
             title: string;
-            /** Jurisdiction */
+            /**
+             * Jurisdiction
+             * @description ISO-3166 alpha-2.
+             * @example RU
+             */
             jurisdiction: string;
-            /** Document Type */
+            /**
+             * Document Type
+             * @description 'code', 'fz', 'letter', 'ruling', ….
+             */
             document_type: string;
             /** Authority */
             authority: string;
@@ -2704,6 +2848,7 @@ export interface components {
             status: "DRAFT" | "APPROVED" | "ACTIVE" | "SUPERSEDED" | "EXPIRED" | "REVOKED";
             /**
              * Classification
+             * @description Server re-computes this from DLP findings; a client-supplied value is treated as a hint and the stricter class wins.
              * @default INTERNAL
              * @enum {string}
              */
@@ -2729,9 +2874,18 @@ export interface components {
             /** Reindex Of Id */
             reindex_of_id?: string | null;
         };
-        /** SyncRequest */
+        /**
+         * SyncRequest
+         * @example {
+         *       "request_key": "sync-2026-11-01-a08037"
+         *     }
+         */
         SyncRequest: {
-            /** Request Key */
+            /**
+             * Request Key
+             * @description Client-generated idempotency token. Same (company, owner, key) returns the original receipt instead of re-syncing the snapshot.
+             * @example sync-2026-11-01-a08037
+             */
             request_key: string;
         };
         /** SyncResponse */
@@ -2769,18 +2923,57 @@ export interface components {
          * @enum {string}
          */
         TaskCategory: "accounting" | "legal" | "security" | "mixed" | "unsupported";
-        /** TaskCreate */
+        /**
+         * TaskCreate
+         * @example {
+         *       "attachment_ids": [],
+         *       "effective_on": "2026-11-01",
+         *       "invoice_id": "inv_007",
+         *       "jurisdiction": "RU",
+         *       "message": "Что с оплатой по счёту инв_007 от ООО «Ромашка»?",
+         *       "process_id": "office_review",
+         *       "requested_action": "analyze",
+         *       "requested_agent": "accountant"
+         *     }
+         * @example {
+         *       "effective_on": "2026-11-01",
+         *       "invoice_id": "inv_012",
+         *       "jurisdiction": "RU",
+         *       "message": "Проверь, можно ли готовиться к выплате по инв_012.",
+         *       "process_id": "daily_cash_and_receivable_risk",
+         *       "requested_action": "prepare_payment_draft",
+         *       "requested_agent": "lawyer"
+         *     }
+         */
         TaskCreate: {
-            /** Message */
+            /**
+             * Message
+             * @description Free-text request from the owner. Never contains real card numbers or taxpayer IDs — the DLP registry rejects them.
+             * @example Что с оплатой по счёту инв_007 от ООО «Ромашка»?
+             */
             message: string;
-            /** Attachment Ids */
+            /**
+             * Attachment Ids
+             * @description Artifact ids returned by POST /api/v1/files. Attachments are treated as untrusted input and re-scanned by the post-extraction DLP gate before indexing.
+             */
             attachment_ids?: string[];
             requested_agent?: components["schemas"]["AgentType"] | null;
-            /** Jurisdiction */
+            /**
+             * Jurisdiction
+             * @description ISO-3166 alpha-2, e.g. RU.
+             * @example RU
+             */
             jurisdiction?: string | null;
-            /** Effective On */
+            /**
+             * Effective On
+             * @description Date at which the legal position must hold. Required for any lawyer-routed task together with `jurisdiction`.
+             * @example 2026-11-01
+             */
             effective_on?: string | null;
-            /** Invoice Id */
+            /**
+             * Invoice Id
+             * @example inv_007
+             */
             invoice_id?: string | null;
             /**
              * Requested Action

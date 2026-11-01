@@ -19,21 +19,47 @@ def _sessions_service(settings: Any) -> Any:
 
 
 class RefreshRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"}]},
+    )
 
-    refresh_token: str = Field(min_length=16, max_length=200)
+    refresh_token: str = Field(
+        min_length=16,
+        max_length=200,
+        description="Opaque token kept in memory by the SPA; never persisted to localStorage.",
+    )
 
 
 class LogoutRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"}]},
+    )
 
     refresh_token: str = Field(min_length=16, max_length=200)
 
 
 class OidcSessionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "id_token": (
+                        "eyJhbGciOiJSUzI1NiIsImtpZCI6ImdhdGV3YXksInR5cCI6IkpXVCJ9."
+                        "…signature-omitted-in-docs…"
+                    )
+                }
+            ]
+        },
+    )
 
-    id_token: str = Field(min_length=8, max_length=8192)
+    id_token: str = Field(
+        min_length=8,
+        max_length=8192,
+        description="Verified OIDC assertion from the configured IdP.",
+    )
 
 
 @router.post("/oidc/session")
@@ -49,16 +75,29 @@ async def oidc_session(
 
 
 class InvitationCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"email": "lawyer@office.example", "role": "lawyer"}]},
+    )
 
     email: EmailStr
-    role: str = Field(pattern=r"^(admin|auditor|accountant|lawyer|security)$")
+    role: str = Field(
+        pattern=r"^(admin|auditor|accountant|lawyer|security)$",
+        description="Server-assigned capability set for the invited principal.",
+    )
 
 
 class InvitationAccept(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"invitation_token": "inv_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGH"}]},
+    )
 
-    invitation_token: str = Field(min_length=16, max_length=200)
+    invitation_token: str = Field(
+        min_length=16,
+        max_length=200,
+        description="Single-use token returned by POST /api/v1/auth/invitations.",
+    )
 
 
 @router.post("/refresh")

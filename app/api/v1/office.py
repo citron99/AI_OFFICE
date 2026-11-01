@@ -2,7 +2,7 @@ from datetime import date
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from app.accounting.reports import financial_report
@@ -309,8 +309,16 @@ async def approvals(
 
 
 class DecisionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    decision: Literal["approve", "reject"]
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={"examples": [{"decision": "approve"}, {"decision": "reject"}]},
+    )
+    decision: Literal["approve", "reject"] = Field(
+        description=(
+            "Explicit human verdict on the pending approval. Agents never "
+            "set this field; the OWNER role is required by the endpoint."
+        )
+    )
 
 
 @router.post("/approvals/{approval_id}/decision")

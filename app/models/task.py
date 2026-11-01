@@ -16,13 +16,63 @@ from app.orchestrator.passport import ProcessDefinitionV3
 
 
 class TaskCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    message: str = Field(min_length=1, max_length=20_000)
-    attachment_ids: list[str] = Field(default_factory=list, max_length=10)
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "message": "Что с оплатой по счёту инв_007 от ООО «Ромашка»?",
+                    "attachment_ids": [],
+                    "requested_agent": "accountant",
+                    "jurisdiction": "RU",
+                    "effective_on": "2026-11-01",
+                    "invoice_id": "inv_007",
+                    "requested_action": "analyze",
+                    "process_id": "office_review",
+                },
+                {
+                    "message": "Проверь, можно ли готовиться к выплате по инв_012.",
+                    "requested_agent": "lawyer",
+                    "jurisdiction": "RU",
+                    "effective_on": "2026-11-01",
+                    "invoice_id": "inv_012",
+                    "requested_action": "prepare_payment_draft",
+                    "process_id": "daily_cash_and_receivable_risk",
+                },
+            ]
+        },
+    )
+    message: str = Field(
+        min_length=1,
+        max_length=20_000,
+        description=(
+            "Free-text request from the owner. Never contains real card "
+            "numbers or taxpayer IDs — the DLP registry rejects them."
+        ),
+        examples=["Что с оплатой по счёту инв_007 от ООО «Ромашка»?"],
+    )
+    attachment_ids: list[str] = Field(
+        default_factory=list,
+        max_length=10,
+        description=(
+            "Artifact ids returned by POST /api/v1/files. Attachments are "
+            "treated as untrusted input and re-scanned by the post-extraction "
+            "DLP gate before indexing."
+        ),
+    )
     requested_agent: AgentType | None = None
-    jurisdiction: Jurisdiction | None = None
-    effective_on: date | None = None
-    invoice_id: str | None = Field(default=None, pattern=r"^inv_[0-9]{3}$")
+    jurisdiction: Jurisdiction | None = Field(
+        default=None, description="ISO-3166 alpha-2, e.g. RU.", examples=["RU"]
+    )
+    effective_on: date | None = Field(
+        default=None,
+        description=(
+            "Date at which the legal position must hold. Required for any "
+            "lawyer-routed task together with `jurisdiction`."
+        ),
+        examples=["2026-11-01"],
+    )
+    invoice_id: str | None = Field(default=None, pattern=r"^inv_[0-9]{3}$", examples=["inv_007"])
     requested_action: Literal["analyze", "prepare_payment_draft"] = "analyze"
     process_id: Literal["office_review", "daily_cash_and_receivable_risk"] = "office_review"
 

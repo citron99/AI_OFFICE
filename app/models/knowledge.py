@@ -12,18 +12,47 @@ Classification = Literal["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
 
 
 class SourceCreate(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "artifact_id": "art_01JZK4Q9T2XW8V5R3N6Y7B0C",
+                    "title": "НК РФ, часть первая",
+                    "jurisdiction": "RU",
+                    "document_type": "code",
+                    "authority": "Государственная Дума РФ",
+                    "version": "2026-01-01",
+                    "effective_from": "2026-01-01",
+                    "effective_to": None,
+                    "status": "ACTIVE",
+                    "classification": "PUBLIC",
+                    "language": "ru",
+                }
+            ]
+        },
+    )
 
-    artifact_id: str = Field(min_length=1, max_length=40)
+    artifact_id: str = Field(
+        min_length=1,
+        max_length=40,
+        description="Id returned by POST /api/v1/files after the DLP scan.",
+    )
     title: Label
-    jurisdiction: Jurisdiction
-    document_type: Label
+    jurisdiction: Jurisdiction = Field(description="ISO-3166 alpha-2.", examples=["RU"])
+    document_type: Label = Field(description="'code', 'fz', 'letter', 'ruling', ….")
     authority: Label
     version: Label
     effective_from: date
     effective_to: date | None = None
     status: SourceStatus = "DRAFT"
-    classification: Classification = "INTERNAL"
+    classification: Classification = Field(
+        default="INTERNAL",
+        description=(
+            "Server re-computes this from DLP findings; a client-supplied "
+            "value is treated as a hint and the stricter class wins."
+        ),
+    )
     language: str = Field(default="ru", pattern=r"^[a-z]{2}$")
 
     @model_validator(mode="after")
@@ -45,11 +74,26 @@ class SourceResponse(SourceCreate):
 
 
 class SearchRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "query": "какие документы подтверждают право на вычет НДС",
+                    "jurisdiction": "RU",
+                    "effective_on": "2026-01-01",
+                    "document_types": ["code"],
+                    "top_k": 5,
+                }
+            ]
+        },
+    )
 
     query: str = Field(min_length=1, max_length=20_000, pattern=r"\S")
-    jurisdiction: Jurisdiction
-    effective_on: date
+    jurisdiction: Jurisdiction = Field(examples=["RU"])
+    effective_on: date = Field(
+        description="Only sources whose effective interval covers this date are retrieved."
+    )
     document_types: list[Label] = Field(default_factory=list, max_length=20)
     top_k: int = Field(default=5, ge=1, le=50)
 
