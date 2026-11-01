@@ -26,7 +26,7 @@ class DataClass(StrEnum):
     RESTRICTED = "restricted"
 
 
-RULES_REGISTRY_VERSION = "dlp-rules-2026-09-v1"
+RULES_REGISTRY_VERSION = "dlp-rules-2026-11-v1"
 
 
 @dataclass(frozen=True)
@@ -53,6 +53,24 @@ RULES_REGISTRY: tuple[ClassificationRule, ...] = (
         r"(?i)\b(api[_-]?key|secret[_-]?key|токен)\s*[:=]\s*\S+",
     ),
     _rule("bearer_token", DataClass.RESTRICTED, r"\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}"),
+    _rule(
+        "aws_access_key_id",
+        DataClass.RESTRICTED,
+        r"\b(?:AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b",
+    ),
+    _rule(
+        "github_token",
+        DataClass.RESTRICTED,
+        r"\b(?:gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,})\b",
+    ),
+    _rule("slack_token", DataClass.RESTRICTED, r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b"),
+    _rule("stripe_secret_key", DataClass.RESTRICTED, r"\bsk_(?:live|test)_[A-Za-z0-9]{24,}\b"),
+    _rule("google_api_key", DataClass.RESTRICTED, r"\bAIza[0-9A-Za-z_-]{35}\b"),
+    _rule(
+        "private_key_block",
+        DataClass.RESTRICTED,
+        r"-----BEGIN (?:[A-Z]+ )*PRIVATE KEY(?: BLOCK)?-----",
+    ),
     _rule("card_number", DataClass.RESTRICTED, r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b"),
     _rule("bank_account_secret", DataClass.RESTRICTED, r"(?i)\b(номер\s+карты|cvv|cvc)\b"),
     _rule("email_address", DataClass.PERSONAL, r"\b[\w.+-]+@[\w-]+\.[\w.-]{2,}\b"),
