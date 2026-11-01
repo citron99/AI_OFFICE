@@ -68,12 +68,16 @@ async def provider_status(
     request: Request,
 ) -> dict[str, object]:
     """Health, mode and license scope without exposing any licensed text."""
-    del principal
     provider = request.app.state.consultant_provider
     health = provider.healthcheck()
     scope = provider.license_scope()
+    # Tenant-scoped: an unfiltered count() leaks the whole platform's
+    # Consultant+ query volume to any authenticated principal and violates
+    # the AGENTS.md invariant that every company_id boundary is enforced.
     events_total = await session.scalar(
-        select(func.count()).select_from(ConsultantPlusSearchEventRecord)
+        select(func.count())
+        .select_from(ConsultantPlusSearchEventRecord)
+        .where(ConsultantPlusSearchEventRecord.company_id == principal.company_id)
     )
     return {
         "mode": provider.mode,
