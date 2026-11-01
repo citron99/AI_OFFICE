@@ -265,6 +265,7 @@ class LawyerAgent:
                 query=text,
                 model_id=settings.llm_model if settings.llm_provider != "mock" else "mock",
                 timeout_seconds=settings.legal_analysis_timeout_seconds,
+                company_id=company_id,
             )
         result.warnings.append("LEGAL_ANALYSIS_DISABLED: LLM не вызывался.")
         return result

@@ -161,6 +161,7 @@ async def analyze(
     query: str,
     model_id: str,
     timeout_seconds: float,
+    company_id: str,
 ) -> LegalResult:
     if any(
         detections(text)
@@ -198,7 +199,7 @@ async def analyze(
         # confidential and personal classes require contours the MVP lacks.
         verdict = evaluate_egress(
             EgressRequest(
-                company_id="system",
+                company_id=company_id,
                 route="external_llm",
                 purpose="legal_analysis",
                 content=json.dumps(payload, ensure_ascii=False, default=str),
