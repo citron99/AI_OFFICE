@@ -1,5 +1,6 @@
 import asyncio
 import json
+import zlib
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
@@ -114,6 +115,46 @@ async def upload(client: httpx.AsyncClient, text: str) -> str:
     )
     assert response.status_code == 201
     return response.json()["id"]
+
+
+async def upload_bytes(
+    client: httpx.AsyncClient, filename: str, mime_type: str, data: bytes
+) -> str:
+    response = await client.post("/api/v1/files", files={"file": (filename, data, mime_type)})
+    assert response.status_code == 201, response.text
+    return str(response.json()["id"])
+
+
+def _pdf_with(draw_text: str) -> bytes:
+    """One-page PDF whose text lives in a Flate stream so container DLP is blind."""
+    content = f"BT /F1 12 Tf 72 720 Td ({draw_text}) Tj ET".encode()
+    stream = zlib.compress(content, 9)
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 5 0 R >> >> "
+        b"/MediaBox [0 0 612 792] /Contents 4 0 R >>",
+        b"<< /Length "
+        + str(len(stream)).encode()
+        + b" /Filter /FlateDecode >>\nstream\n"
+        + stream
+        + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = bytearray(b"%PDF-1.4\n")
+    offsets: list[int] = []
+    for number, body in enumerate(objects, 1):
+        offsets.append(len(out))
+        out += f"{number} 0 obj\n".encode() + body + b"\nendobj\n"
+    xref = len(out)
+    out += f"xref\n0 {len(objects) + 1}\n".encode()
+    out += b"0000000000 65535 f \n"
+    for offset in offsets:
+        out += f"{offset:010d} 00000 n \n".encode()
+    out += (
+        f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    )
+    return bytes(out)
 
 
 async def source(client: httpx.AsyncClient, *, jurisdiction: str = "LV") -> str:
@@ -270,4 +311,28 @@ async def test_disallowed_attachments_never_reach_provider(
             await session.commit()
     response = await task(client, [artifact_id])
     assert response.status_code == (404 if case == "foreign" else 422)
+    assert provider.inputs == []
+
+
+async def test_secret_only_visible_after_extraction_is_refused(
+    analysis_client: Any,
+    engine: AsyncEngine,
+) -> None:
+    """Extraction is a second DLP boundary: hidden PDF text never reaches the LLM prompt."""
+    client, provider, _ = analysis_client
+    await source(client)
+    artifact_id = await upload_bytes(
+        client,
+        "hidden.pdf",
+        "application/pdf",
+        _pdf_with("Payment clause. password=Sup3rS3cretX applies."),
+    )
+    async with create_session_factory(engine)() as session:
+        artifact = await session.get(ArtifactRecord, artifact_id)
+        assert artifact is not None
+        # Container DLP is blind to the compressed stream; that is exactly the gap.
+        assert artifact.classification == "PUBLIC"
+    response = await task(client, [artifact_id])
+    assert response.status_code == 422, response.text
+    assert "restricted" in response.text.lower()
     assert provider.inputs == []
