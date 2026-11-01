@@ -10,16 +10,13 @@ from sqlalchemy import func, select
 from app.api.auth import PrincipalDependency, ReviewerDependency, WriterDependency
 from app.api.dependencies import SessionDependency
 from app.db.tables.consultant_plus import ConsultantPlusSearchEventRecord
-from app.integrations.consultant_plus.exceptions import (
-    ConsultantPlusUnavailableError,
-    LicenseScopeExceededError,
-)
 from app.models.legal_change import (
     LegalChangeRadarCreate,
     LegalChangeRadarRunResponse,
     LegalChangeReviewCreate,
 )
 from app.services.legal_change_radar import LegalChangeRadarService
+from app.services.licensed_search import guarded_licensed_search
 
 router = APIRouter(prefix="/legal", tags=["legal provider (Consultant+)"])
 
@@ -63,23 +60,22 @@ async def provider_status(
 async def search(
     payload: LegalSearchRequest,
     principal: PrincipalDependency,
+    session: SessionDependency,
     request: Request,
     limit: int = Query(default=5, ge=1, le=20),
 ) -> dict[str, object]:
-    """Manual licensed search; a full route always records its trail in the task."""
-    del principal
-    provider = request.app.state.consultant_provider
-    try:
-        results = provider.search(
-            query=payload.query,
-            jurisdiction=payload.jurisdiction,
-            effective_on=payload.effective_on,
-            limit=limit,
-        )
-    except ConsultantPlusUnavailableError as error:
-        raise HTTPException(503, str(error)) from None
-    except LicenseScopeExceededError as error:
-        raise HTTPException(403, str(error)) from None
+    """Manual licensed search through the egress gate; every crossing is journalled."""
+    results = await guarded_licensed_search(
+        session,
+        request.app.state.consultant_provider,
+        query=payload.query,
+        jurisdiction=payload.jurisdiction,
+        effective_on=payload.effective_on,
+        company_id=principal.company_id,
+        owner_id=principal.user_id,
+        channel="manual_search",
+        limit=limit,
+    )
     return {
         "query_id": results[0].query_id if results else None,
         "results": [item.model_dump(mode="json") for item in results],

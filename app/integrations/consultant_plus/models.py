@@ -65,4 +65,6 @@ class ConsultantPlusTrail(BaseModel):
     provider_status: Literal["ok", "unavailable"]
     license_scope: LicenseScope | None = None
     searched: bool = False
+    egress_decision: Literal["allow", "block"] | None = None
+    egress_reasons: list[str] = Field(default_factory=list)
     queries: list[ConsultantPlusSearchResult] = Field(default_factory=list)

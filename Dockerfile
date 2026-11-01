@@ -1,15 +1,52 @@
-FROM python:3.12-slim
+# syntax=docker/dockerfile:1.7
+# Build: docker build --progress=plain .
+# The runtime stage intentionally ships only /app/.venv + source; toolchain
+# (uv, pip, build caches) stays in the builder layer.
+ARG PYTHON_VERSION=3.12-slim-bookworm
+
+FROM python:${PYTHON_VERSION} AS builder
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+# Same absolute path as the runtime stage: uv console-script entry points bake
+# the interpreter's absolute path into .venv/bin/* shebangs, so a venv built at
+# /build and copied to /app breaks with "alembic: not found" (exit 127).
 WORKDIR /app
-RUN pip install --no-cache-dir uv==0.12.5
+# Pinning uv keeps the dependency resolver byte-for-byte reproducible.
+RUN pip install uv==0.12.5
 COPY pyproject.toml uv.lock README.md ./
-RUN uv sync --locked --no-dev --no-install-project
-ENV PATH="/app/.venv/bin:$PATH"
-COPY app ./app
-COPY alembic.ini ./
-COPY migrations ./migrations
-# The project is not installed into site-packages, so imports resolve via /app regardless of cwd.
-ENV PYTHONPATH=/app
-RUN useradd --create-home office && mkdir -p /app/uploads && chown office:office /app/uploads
+# --mount=type=cache lets rebuilds reuse downloaded wheels; --locked enforces
+# the uv.lock hash and --no-dev/--no-install-project keeps the runtime venv lean.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev --no-install-project
+
+FROM python:${PYTHON_VERSION} AS runtime
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+WORKDIR /app
+# Static, non-root, no login shell; keep UID stable so mounted volumes can be
+# chowned once by the operator.
+RUN groupadd --system --gid 10001 office \
+    && useradd --system --uid 10001 --gid office --home-dir /home/office --shell /usr/sbin/nologin office \
+    && mkdir -p /app/uploads && chown office:office /app/uploads
+COPY --from=builder --chown=office:office /app/.venv /app/.venv
+COPY --chown=office:office alembic.ini ./
+COPY --chown=office:office migrations ./migrations
+COPY --chown=office:office app ./app
 USER office
 EXPOSE 8000
+# No HEALTHCHECK here on purpose: the same image backs the API (HTTP :8000),
+# the Celery worker and the dispatcher, and only the first serves /ready. A
+# baked-in probe would mark worker/dispatcher containers unhealthy and abort
+# `docker compose up --wait`. Define role-specific healthchecks in the
+# Compose/K8s manifest; `services.api.healthcheck` in docker-compose.yml is
+# the reference implementation.
+# OCI image annotations for supply-chain provenance.
+LABEL org.opencontainers.image.title="ai-office-api" \
+      org.opencontainers.image.source="https://github.com/citron99/ai_office" \
+      org.opencontainers.image.base.name="docker.io/library/python:${PYTHON_VERSION}"
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

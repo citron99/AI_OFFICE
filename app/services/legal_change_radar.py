@@ -13,10 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import IdempotencyConflictError
 from app.db.tables.knowledge import KnowledgeChunkRecord, KnowledgeSourceRecord
 from app.db.tables.legal_change import LegalChangeRadarReviewRecord, LegalChangeRadarRunRecord
-from app.integrations.consultant_plus.exceptions import (
-    ConsultantPlusUnavailableError,
-    LicenseScopeExceededError,
-)
 from app.integrations.consultant_plus.factory import ConsultantPlusProviderLike
 from app.models.legal_change import (
     LegalChangeRadarCreate,
@@ -25,6 +21,7 @@ from app.models.legal_change import (
     LegalChangeReviewCreate,
     LegalChangeReviewResponse,
 )
+from app.services.licensed_search import guarded_licensed_search
 
 HIGH_ATTENTION_TERMS = (
     "штраф",
@@ -179,17 +176,17 @@ class LegalChangeRadarService:
         health = self.consultant.healthcheck()
         if health.status != "ok":
             raise HTTPException(503, "Consultant+ source gate is unavailable")
-        try:
-            licensed = self.consultant.search(
-                query=payload.subject,
-                jurisdiction=payload.jurisdiction,
-                effective_on=payload.effective_on,
-                limit=5,
-            )
-        except ConsultantPlusUnavailableError as error:
-            raise HTTPException(503, str(error)) from None
-        except LicenseScopeExceededError as error:
-            raise HTTPException(403, str(error)) from None
+        licensed = await guarded_licensed_search(
+            self.session,
+            self.consultant,
+            query=payload.subject,
+            jurisdiction=payload.jurisdiction,
+            effective_on=payload.effective_on,
+            company_id=company_id,
+            owner_id=owner_id,
+            channel="change_radar",
+            limit=5,
+        )
         if not licensed:
             raise HTTPException(424, "Consultant+ returned no applicable source metadata")
 

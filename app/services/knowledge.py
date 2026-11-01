@@ -24,11 +24,39 @@ from app.models.knowledge import (
     SourceCreate,
     SourceResponse,
 )
+from app.security.data_classification import ClassificationResult, DataClass, classify_text
 from app.services.files import FileService
 
 # Server-side pilot policy. Never accept this list from a search request.
 PILOT_CLASSIFICATIONS = frozenset({"PUBLIC", "INTERNAL"})
 MAX_SEARCH_CANDIDATES = 5000
+
+# Source classification domain in the pilot has no PERSONAL tier; personal
+# hits fail closed to CONFIDENTIAL so the retrieval gate blocks them.
+_SOURCE_CLASS_BY_DATA_CLASS: dict[DataClass, str] = {
+    DataClass.PUBLIC: "PUBLIC",
+    DataClass.INTERNAL: "INTERNAL",
+    DataClass.CONFIDENTIAL: "CONFIDENTIAL",
+    DataClass.PERSONAL: "CONFIDENTIAL",
+    DataClass.RESTRICTED: "RESTRICTED",
+}
+_SOURCE_CLASS_SEVERITY: dict[str, int] = {
+    "PUBLIC": 0,
+    "INTERNAL": 1,
+    "CONFIDENTIAL": 2,
+    "RESTRICTED": 3,
+}
+
+
+def _artifact_class_as_source_class(value: str) -> str:
+    """Project the artifact label (which may be PERSONAL) into the source domain."""
+    if value == DataClass.PERSONAL.value.upper():
+        return "CONFIDENTIAL"
+    return value if value in _SOURCE_CLASS_SEVERITY else "PUBLIC"
+
+
+def _stricter(left: str, right: str) -> str:
+    return left if _SOURCE_CLASS_SEVERITY[left] >= _SOURCE_CLASS_SEVERITY[right] else right
 
 
 class KnowledgeService:
@@ -191,8 +219,44 @@ class KnowledgeService:
             return [(c.text, c.locator, c.page, c.article, self._embed(c.text)) for c in chunks]
 
         chunks = await asyncio.to_thread(extract)
+        # Second DLP boundary: the upload scanner only saw the container bytes,
+        # compressed streams can hide secrets. Re-scan the extracted text before
+        # a single chunk reaches the index (audit п.7).
+        extracted_text = "\n\n".join(text for text, *_rest in chunks)
+        post_extraction: ClassificationResult = classify_text(extracted_text)
+        if post_extraction.data_class == DataClass.RESTRICTED:
+            rules = sorted({finding.rule for finding in post_extraction.findings})
+            artifact.classification = DataClass.RESTRICTED.value.upper()
+            artifact.dlp_rules = rules
+            await self.session.commit()
+            raise FileValidationError(
+                "Post-extraction DLP refused the source: restricted data detected ("
+                + ",".join(rules)
+                + ")"
+            )
+        # The strictest of {client label, stored upload verdict, extraction verdict}
+        # wins, so a client cannot loosen a server classification by re-declaring
+        # the label on the source payload.
+        server_classification = _stricter(
+            payload.classification,
+            _stricter(
+                _artifact_class_as_source_class(artifact.classification),
+                _SOURCE_CLASS_BY_DATA_CLASS[post_extraction.data_class],
+            ),
+        )
+        if post_extraction.findings:
+            artifact.dlp_rules = sorted(
+                set(artifact.dlp_rules or [])
+                | {finding.rule for finding in post_extraction.findings}
+            )
+        if (
+            _SOURCE_CLASS_SEVERITY[server_classification]
+            > _SOURCE_CLASS_SEVERITY[_artifact_class_as_source_class(artifact.classification)]
+        ):
+            artifact.classification = server_classification
+        source_payload = payload.model_copy(update={"classification": server_classification})
         source = KnowledgeSourceRecord(
-            **payload.model_dump(),
+            **source_payload.model_dump(),
             company_id=company_id,
             owner_id=owner_id,
             sha256=artifact.sha256,

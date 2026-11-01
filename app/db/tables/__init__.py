@@ -4,6 +4,7 @@ from app.db.tables.approvals import ApprovalRecord, AuditRecord, DraftRecord
 from app.db.tables.artifacts import ArtifactRecord
 from app.db.tables.companies import CompanyMembershipRecord, CompanyRecord
 from app.db.tables.consultant_plus import ConsultantPlusSearchEventRecord
+from app.db.tables.grants import CapabilityGrantRecord
 from app.db.tables.knowledge import KnowledgeChunkRecord, KnowledgeSourceRecord
 from app.db.tables.legal_change import LegalChangeRadarReviewRecord, LegalChangeRadarRunRecord
 from app.db.tables.process_runtime import ProcessRuntimeRecord
@@ -27,6 +28,7 @@ __all__ = [
     "CompanyMembershipRecord",
     "CompanyRecord",
     "ConsultantPlusSearchEventRecord",
+    "CapabilityGrantRecord",
     "DraftRecord",
     "ArtifactRecord",
     "KnowledgeChunkRecord",

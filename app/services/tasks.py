@@ -133,7 +133,9 @@ class TaskService:
     ) -> TaskResponse:
         from app.jobs import publish
 
-        await self._verify_attachments(payload.attachment_ids, user_id=user_id, company_id=company_id)
+        await self._verify_attachments(
+            payload.attachment_ids, user_id=user_id, company_id=company_id
+        )
         task, created = await self.repository.create_once(
             user_id=user_id,
             payload=payload,
@@ -328,7 +330,9 @@ class TaskService:
         idempotency_key: str | None = None,
         company_id: str,
     ) -> TaskResponse:
-        await self._verify_attachments(payload.attachment_ids, user_id=user_id, company_id=company_id)
+        await self._verify_attachments(
+            payload.attachment_ids, user_id=user_id, company_id=company_id
+        )
         if existing_task is not None:
             task = existing_task
         else:
@@ -356,7 +360,8 @@ class TaskService:
             is_legal = self.lawyer is not None and routing.category == TaskCategory.LEGAL
             requires_office = (
                 payload.process_id == "daily_cash_and_receivable_risk"
-                or routing.category in {TaskCategory.ACCOUNTING, TaskCategory.SECURITY, TaskCategory.MIXED}
+                or routing.category
+                in {TaskCategory.ACCOUNTING, TaskCategory.SECURITY, TaskCategory.MIXED}
                 or payload.invoice_id is not None
             )
             if requires_office and self.lawyer is None:
@@ -367,7 +372,12 @@ class TaskService:
                     warnings=["LAWYER_UNAVAILABLE"],
                 )
                 await self.repository.set_result(task, result.model_dump(mode="json"))
-                audit(self.session, task, "office_requires_lawyer", {"process_id": payload.process_id})
+                audit(
+                    self.session,
+                    task,
+                    "office_requires_lawyer",
+                    {"process_id": payload.process_id},
+                )
                 await self._transition(task, TaskState.FAILED)
                 await self.session.commit()
                 return self.to_response(task)
@@ -400,7 +410,6 @@ class TaskService:
             step_records[0].started_at = datetime.now(UTC)
             await self.session.commit()
 
-            result: AgentResult
             if is_legal:
                 assert self.lawyer is not None
                 runtime = await get_runtime(
@@ -417,7 +426,12 @@ class TaskService:
                         warnings=["KILL_SWITCH_PROCESS"],
                     )
                     await self.repository.set_result(task, result.model_dump(mode="json"))
-                    audit(self.session, task, "kill_switch_stop", {"process_id": payload.process_id})
+                    audit(
+                        self.session,
+                        task,
+                        "kill_switch_stop",
+                        {"process_id": payload.process_id},
+                    )
                     await self._transition(task, TaskState.WAITING_INPUT)
                     await self.session.commit()
                     return self.to_response(task)
@@ -980,6 +994,22 @@ class TaskService:
         """Journal Consultant+ search metadata; the licensed text is never copied."""
         trail = legal.consultant_plus
         if trail is None:
+            return
+        if trail.egress_decision == "block":
+            self.session.add(
+                ConsultantPlusSearchEventRecord(
+                    company_id=task.company_id,
+                    task_id=task.id,
+                    owner_id=task.user_id,
+                    outcome="egress_blocked",
+                    details={
+                        "mode": trail.mode,
+                        "provider_status": trail.provider_status,
+                        "decision": "block",
+                        "reasons": list(trail.egress_reasons),
+                    },
+                )
+            )
             return
         if not trail.searched:
             self.session.add(

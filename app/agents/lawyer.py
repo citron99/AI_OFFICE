@@ -20,6 +20,7 @@ from app.models.agent import Citation
 from app.models.enums import AgentType
 from app.models.knowledge import SearchRequest
 from app.models.legal import LegalResult
+from app.security.egress_gateway import EgressRequest, evaluate_egress
 from app.services.knowledge import KnowledgeService
 from app.services.legal_analysis import analyze, extract_attachments
 
@@ -75,6 +76,33 @@ class LawyerAgent:
             )
             return result
         scope = self.consultant.license_scope()
+        # TZ 10.3: nothing above INTERNAL may cross the perimeter, licensed
+        # channel included. Blocked text stays inside the process and the task
+        # waits for a human-safe reformulation before any external call.
+        verdict = evaluate_egress(
+            EgressRequest(
+                company_id=company_id,
+                task_id=None,
+                route="licensed_provider",
+                purpose="lawyer_consultant_search",
+                content=text,
+            )
+        )
+        if verdict.decision == "block":
+            result.status = "waiting_source"
+            result.summary = (
+                "WAITING_SOURCE: запрос содержит данные выше INTERNAL; Consultant+ не вызывается."
+            )
+            result.warnings.extend(verdict.reasons)
+            result.consultant_plus = ConsultantPlusTrail(
+                mode=cast_mode(self.consultant.mode),
+                provider_status="unavailable",
+                license_scope=scope,
+                searched=False,
+                egress_decision="block",
+                egress_reasons=list(verdict.reasons),
+            )
+            return result
         try:
             searches = self.consultant.search(
                 query=text, jurisdiction=jurisdiction, effective_on=effective_on
@@ -121,6 +149,8 @@ class LawyerAgent:
             provider_status="ok",
             license_scope=scope,
             searched=True,
+            egress_decision="allow",
+            egress_reasons=list(verdict.reasons),
             queries=searches,
         )
 

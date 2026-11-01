@@ -33,6 +33,8 @@ def _make_task_service(session: Any, app: Any) -> TaskService:
         ),
         consultant=app.state.consultant_provider,
     )
+
+
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],

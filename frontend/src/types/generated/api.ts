@@ -367,7 +367,7 @@ export interface paths {
         put?: never;
         /**
          * Search
-         * @description Manual licensed search; a full route always records its trail in the task.
+         * @description Manual licensed search through the egress gate; every crossing is journalled.
          */
         post: operations["search_api_v1_legal_search_post"];
         delete?: never;
@@ -1181,6 +1181,10 @@ export interface components {
              * @default false
              */
             searched: boolean;
+            /** Egress Decision */
+            egress_decision?: ("allow" | "block") | null;
+            /** Egress Reasons */
+            egress_reasons?: string[];
             /** Queries */
             queries?: components["schemas"]["ConsultantPlusSearchResult"][];
         };

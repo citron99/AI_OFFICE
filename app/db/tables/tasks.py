@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.ids import new_id
@@ -12,6 +12,9 @@ class TaskRecord(Base):
     __tablename__ = "tasks"
     __table_args__ = (
         UniqueConstraint("company_id", "idempotency_key", name="uq_task_company_key"),
+        # Owner-scoped `/tasks` feed filters by (company, user) and sorts by
+        # created_at DESC; single-column indexes force a filesort on the tail.
+        Index("ix_tasks_company_owner_created", "company_id", "user_id", "created_at"),
     )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("task"))
@@ -53,6 +56,11 @@ class TaskRecord(Base):
 
 class TaskStepRecord(Base):
     __tablename__ = "task_steps"
+    __table_args__ = (
+        # `/tasks/{id}/trace` orders by (started_at, id) for a single task;
+        # the standalone task_id index would still need a sort.
+        Index("ix_task_steps_task_started", "task_id", "started_at", "id"),
+    )
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("step"))
     task_id: Mapped[str] = mapped_column(String(40), ForeignKey("tasks.id"), index=True)
