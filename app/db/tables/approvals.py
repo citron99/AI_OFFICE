@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.ids import new_id
@@ -10,6 +10,9 @@ from app.db.base import Base
 
 class ApprovalRecord(Base):
     __tablename__ = "approvals"
+    __table_args__ = (
+        Index("ix_approvals_company_owner_expires", "company_id", "owner_id", "expires_at"),
+    )
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("apr"))
     company_id: Mapped[str | None] = mapped_column(String(40), index=True)
     task_id: Mapped[str] = mapped_column(ForeignKey("tasks.id"), unique=True)
@@ -29,6 +32,9 @@ class ApprovalRecord(Base):
 
 class DraftRecord(Base):
     __tablename__ = "payment_drafts"
+    __table_args__ = (
+        Index("ix_drafts_company_owner_created", "company_id", "owner_id", "created_at"),
+    )
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("draft"))
     # Null for drafts created inside the ALLOW_DRAFT limit without an approval.
     company_id: Mapped[str | None] = mapped_column(String(40), index=True)
@@ -42,6 +48,10 @@ class DraftRecord(Base):
 
 class AuditRecord(Base):
     __tablename__ = "audit_events"
+    __table_args__ = (
+        Index("ix_audit_company_owner_created", "company_id", "owner_id", "created_at"),
+        Index("ix_audit_task_created", "task_id", "created_at"),
+    )
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("audit"))
     company_id: Mapped[str | None] = mapped_column(String(40), index=True)
     owner_id: Mapped[str] = mapped_column(String(40), index=True)
