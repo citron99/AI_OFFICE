@@ -9,7 +9,10 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
-WORKDIR /build
+# Same absolute path as the runtime stage: uv console-script entry points bake
+# the interpreter's absolute path into .venv/bin/* shebangs, so a venv built at
+# /build and copied to /app breaks with "alembic: not found" (exit 127).
+WORKDIR /app
 # Pinning uv keeps the dependency resolver byte-for-byte reproducible.
 RUN pip install uv==0.12.5
 COPY pyproject.toml uv.lock README.md ./
@@ -30,7 +33,7 @@ WORKDIR /app
 RUN groupadd --system --gid 10001 office \
     && useradd --system --uid 10001 --gid office --home-dir /home/office --shell /usr/sbin/nologin office \
     && mkdir -p /app/uploads && chown office:office /app/uploads
-COPY --from=builder --chown=office:office /build/.venv /app/.venv
+COPY --from=builder --chown=office:office /app/.venv /app/.venv
 COPY --chown=office:office alembic.ini ./
 COPY --chown=office:office migrations ./migrations
 COPY --chown=office:office app ./app
