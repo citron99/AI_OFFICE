@@ -78,13 +78,14 @@ services:
   # Optional S3-compatible object storage (TZ 9.5): docker compose --profile s3 up -d
   # then set STORAGE_BACKEND=s3 and the S3_* variables for api and worker.
   # The service name stays `minio` because CI and the compose profile reference it.
-  # Underneath we now run LocalStack: MinIO pulled minio/minio off Docker Hub on
+  # Underneath we run LocalStack: MinIO pulled minio/minio off Docker Hub on
   # 2025-09-11 and archived Community Edition on 2026-02-13, so `up --wait minio`
-  # could no longer pull. LocalStack speaks the same S3 protocol our boto3 client
-  # targets; edge port 4566 maps to host 9000 so TEST_S3_URL/`s3_endpoint_url`
-  # stay unchanged.
+  # could no longer pull. 4.13.1 is the last free LocalStack build — from 4.14
+  # onward the image enforces a license token and exits with code 55 on start.
+  # Edge port 4566 maps to host 9000 so TEST_S3_URL / s3_endpoint_url stay the
+  # same, and LocalStack accepts any SigV4 credentials in test mode.
   minio:
-    image: localstack/localstack:2026.10.4
+    image: localstack/localstack:4.13.1
     profiles: ["s3"]
     environment:
       SERVICES: s3
