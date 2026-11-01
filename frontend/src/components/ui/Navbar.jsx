@@ -48,32 +48,36 @@ export default function Navbar({tabs, activeTab, onNavigate, pendingApprovalsCou
         <Icon name="chevronRight" size={13} className="navbar-chevron" />
         <span className="navbar-version">v3 · integration</span>
         {pendingApprovalsCount > 0 && <button type="button" className="navbar-badge navbar-badge-alert"
-          onClick={() => onNavigate("approvals")} title="Открыть согласования">
+          onClick={() => onNavigate("approvals")} title="Открыть согласования"
+          aria-label={`Открыть согласования: ${pendingApprovalsCount} ожидает`}>
           <Icon name="clock" size={12} className="icon" />
           Согласований: {pendingApprovalsCount}
         </button>}
       </div>
       <div className="navbar-tools">
         <button type="button" className="navbar-button" onClick={onOpenPalette}
-          title="Открыть командную строку и поиск (Ctrl K)">
+          title="Открыть командную строку и поиск (Ctrl K)"
+          aria-label="Открыть командную строку и поиск">
           <Icon name="search" size={13} />
           <span className="navbar-search-label">Поиск и команды</span>
           <kbd>{modKey}K</kbd>
         </button>
         <button type="button" className="navbar-button" disabled={busy} onClick={onRefresh}
-          title="Обновить данные из API">
+          title="Обновить данные из API" aria-label="Обновить данные из API">
           <Icon name="refresh" size={13} />
           Обновить
         </button>
         <button type="button" className="navbar-button" onClick={onToggleTheme}
-          title={theme === "light" ? "Переключить в тёмную тему" : "Переключить в светлую тему"}>
+          title={theme === "light" ? "Переключить в тёмную тему" : "Переключить в светлую тему"}
+          aria-label={theme === "light" ? "Переключить в тёмную тему" : "Переключить в светлую тему"}>
           <Icon name={theme === "light" ? "moon" : "sun"} size={13} />
           {theme === "light" ? "Dark" : "Light"}
         </button>
         <div className="navbar-login-anchor" ref={panelRef} style={{position: "relative"}}>
           <button type="button" className="navbar-identity navbar-button" aria-expanded={loginOpen}
             onClick={() => setLoginOpen(open => !open)}
-            title={me ? `${me.user_id} · ${me.role}` : "Указать ключ доступа"}>
+            title={me ? `${me.user_id} · ${me.role}` : "Указать ключ доступа"}
+            aria-label={me ? `Профиль ${me.user_id} (${me.role})` : "Указать ключ доступа"}>
             <span className="navbar-identity-icon"><Icon name="user" size={12} /></span>
             <span><b>{me ? me.user_id : "Нет доступа"}</b>
               <small>{me?.role || "Авторизуйтесь"}</small></span>
