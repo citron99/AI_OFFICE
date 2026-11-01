@@ -39,10 +39,12 @@ COPY --chown=office:office migrations ./migrations
 COPY --chown=office:office app ./app
 USER office
 EXPOSE 8000
-# The slim image has no curl/wget; use the interpreter already on PATH and
-# the /ready endpoint the app exposes for liveness.
-HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
-    CMD ["python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).status == 200 else 1)"]
+# No HEALTHCHECK here on purpose: the same image backs the API (HTTP :8000),
+# the Celery worker and the dispatcher, and only the first serves /ready. A
+# baked-in probe would mark worker/dispatcher containers unhealthy and abort
+# `docker compose up --wait`. Define role-specific healthchecks in the
+# Compose/K8s manifest; `services.api.healthcheck` in docker-compose.yml is
+# the reference implementation.
 # OCI image annotations for supply-chain provenance.
 LABEL org.opencontainers.image.title="ai-office-api" \
       org.opencontainers.image.source="https://github.com/citron99/ai_office" \
