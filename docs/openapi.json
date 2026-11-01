@@ -1029,7 +1029,7 @@
           "legal provider (Consultant+)"
         ],
         "summary": "Search",
-        "description": "Manual licensed search; a full route always records its trail in the task.",
+        "description": "Manual licensed search through the egress gate; every crossing is journalled.",
         "operationId": "search_api_v1_legal_search_post",
         "security": [
           {
@@ -3137,6 +3137,28 @@
             "type": "boolean",
             "title": "Searched",
             "default": false
+          },
+          "egress_decision": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "allow",
+                  "block"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Egress Decision"
+          },
+          "egress_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Egress Reasons"
           },
           "queries": {
             "items": {
