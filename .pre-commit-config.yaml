@@ -1,0 +1,114 @@
+# Pre-commit hooks для AI_OFFICE
+#
+# Быстрый старт:
+#   uv sync --group dev        # установка зависимостей, включая pre-commit
+#   uv run pre-commit install  # регистрация git hooks
+#   uv run pre-commit run --all-files  # прогон на всем дереве
+#
+# Если uv trampoline не работает (Windows), активируйте venv:
+#   .venv\Scripts\activate  # затем pre-commit / python -m ...
+#
+# Хуки используют `language: system`, чтобы брать ruff/mypy/pytest из общего
+# .venv и читать pyproject.toml (line-length=100, mypy strict). Это быстрее,
+# чем изолированные env, и не расходится с локальными командами.
+#
+# Пропустить один хук: `SKIP=ruff-format git commit ...`
+# Полная регистрация заново: `pre-commit install --install-hooks`
+
+minimum_pre_commit_version: "3.5.0"
+
+default_language_version:
+  python: python3.12
+
+# Глобальные исключения: внешние ассеты, генерируемые файлы и scratch-директории.
+# Ruff уже исключает .codex/skills через [tool.ruff] extend-exclude — здесь то же
+# самое распространяется на hygiene-хуки (whitespace / eof / line-ending).
+exclude: |
+  (?x)^(
+    \.codex/skills/.*|
+    agensi/.*|
+    _audit_scratch/.*|
+    docs/openapi\.json|
+    frontend/package-lock\.json|
+    frontend/src/types/generated/.*|
+    uv\.lock|
+    requirements-.*\.(txt|lock)|
+    tests/unit/golden_values\.json|
+    tests/fixtures/.*\.json
+  )$
+
+ci:
+  # Не запускать unit-тесты на PR-автофиксах — только на push.
+  skip: [pytest-unit]
+  autofix_prs: false
+
+repos:
+  # ---------- Базовые гигиенические проверки ----------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^(docs/|README\.md|AGENTS\.md|CLAUDE\.md)
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: ^(docs/|README\.md|AGENTS\.md|CLAUDE\.md)
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-docstring-first
+        files: ^app/
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: \.(bat|cmd)$
+      - id: detect-private-key
+
+  # ---------- Python lint / format / types / tests ----------
+  # Все python-хуки идут через `uv run python -m ...`, чтобы брать зависимости
+  # из локального .venv без требования активировать его вручную. Это работает
+  # одинаково на Windows/macOS/Linux.
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check (--fix)
+        entry: uv run --group dev python -m ruff check --fix --force-exclude
+        language: system
+        types: [python]
+        files: ^(app|tests|migrations)/
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --group dev python -m ruff format --force-exclude
+        language: system
+        types: [python]
+        files: ^(app|tests|migrations)/
+
+      - id: mypy-app
+        name: mypy app (strict)
+        entry: uv run --group dev python -m mypy app
+        language: system
+        types: [python]
+        files: ^app/
+        pass_filenames: false
+
+      - id: pytest-unit
+        name: pytest (unit, fast)
+        entry: uv run --group dev python -m pytest tests/unit -q --no-header -x
+        language: system
+        types: [python]
+        files: ^(app|tests/unit)/
+        pass_filenames: false
+
+  # ---------- Frontend ----------
+  - repo: local
+    hooks:
+      - id: frontend-test
+        name: frontend npm test (если node_modules установлены)
+        entry: |
+          bash -c "cd frontend && if [ -d node_modules ]; then npm test; else echo 'skip: frontend/node_modules отсутствует (npm ci для включения)'; fi"
+        language: system
+        files: ^frontend/.*\.(jsx?|mjs|cjs)$
+        pass_filenames: false
