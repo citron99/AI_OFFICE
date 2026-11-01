@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from app.security.data_classification import ClassificationResult, DataClass, classify_text
 
 EgressDecision = Literal["allow", "block"]
+EgressRoute = Literal["external_llm", "licensed_provider", "local_llm", "internal_only"]
 
 
 class EgressRequest(BaseModel):
@@ -23,7 +24,7 @@ class EgressRequest(BaseModel):
 
     company_id: str = Field(min_length=1, max_length=40)
     task_id: str | None = None
-    route: Literal["external_llm", "local_llm", "internal_only"] = "external_llm"
+    route: EgressRoute = "external_llm"
     purpose: str = Field(min_length=3, max_length=200)
     content: str = Field(min_length=1)
 
@@ -41,6 +42,9 @@ class EgressVerdict(BaseModel):
 _EXTERNAL_ALLOWED: frozenset[DataClass] = frozenset({DataClass.PUBLIC, DataClass.INTERNAL})
 # PERSONAL requires the approved purpose+minimization contour of TZ 10.2 and is
 # therefore not part of the MVP external set; CONFIDENTIAL/RESTRICTED never go.
+# Consultant+ is a licensed external channel — same ceiling as external LLM:
+# data still leaves the perimeter, so RESTRICTED/CONFIDENTIAL/PERSONAL all block.
+_OUTBOUND_ROUTES: frozenset[EgressRoute] = frozenset({"external_llm", "licensed_provider"})
 
 
 def evaluate_egress(request: EgressRequest) -> EgressVerdict:
@@ -49,10 +53,14 @@ def evaluate_egress(request: EgressRequest) -> EgressVerdict:
     reasons: list[str] = []
     decision: EgressDecision = "allow"
 
-    if request.route == "external_llm":
+    if request.route in _OUTBOUND_ROUTES:
         if classification.data_class == DataClass.RESTRICTED:
             decision = "block"
-            reasons.append("RESTRICTED_DATA_EXTERNAL_LLM_FORBIDDEN")
+            reasons.append(
+                "RESTRICTED_DATA_EXTERNAL_LLM_FORBIDDEN"
+                if request.route == "external_llm"
+                else "RESTRICTED_DATA_LICENSED_PROVIDER_FORBIDDEN"
+            )
         elif classification.data_class == DataClass.CONFIDENTIAL:
             decision = "block"
             reasons.append("CONFIDENTIAL_DATA_REQUIRES_LOCAL_CONTOUR")

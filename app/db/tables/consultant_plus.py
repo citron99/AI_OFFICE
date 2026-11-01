@@ -19,7 +19,7 @@ class ConsultantPlusSearchEventRecord(Base):
 
     id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: new_id("cps"))
     company_id: Mapped[str | None] = mapped_column(String(40), index=True)
-    task_id: Mapped[str] = mapped_column(ForeignKey("tasks.id"), index=True)
+    task_id: Mapped[str | None] = mapped_column(ForeignKey("tasks.id"), index=True, nullable=True)
     owner_id: Mapped[str] = mapped_column(String(40), index=True)
     outcome: Mapped[str] = mapped_column(String(20))  # found | not_found | unavailable
     query_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
