@@ -30,6 +30,21 @@ from app.services.tasks import TaskService
 router = APIRouter(tags=["office"])
 
 
+def _check_accounting_provisioned(provider: Any, company_id: str) -> None:
+    """Fail-closed gate: reject accounting reads for companies without a dataset.
+
+    The pilot dataset is provisioned only for comp_demo. Until per-tenant datasets
+    are implemented, any other company_id gets 403. This honors the "scope by
+    company_id at every boundary" invariant (AGENTS.md) for the accounting surface.
+    """
+    if company_id not in getattr(provider, "provisioned_companies", set()):
+        raise HTTPException(
+            403,
+            f"Accounting dataset not provisioned for company {company_id}. "
+            "Only the demo tenant (comp_demo) has data in this pilot.",
+        )
+
+
 @router.post("/accounting/sync", response_model=SyncResponse)
 async def accounting_sync(
     payload: SyncRequest,
@@ -37,6 +52,7 @@ async def accounting_sync(
     session: SessionDependency,
     provider: AccountingProviderDependency,
 ) -> SyncResponse:
+    _check_accounting_provisioned(provider, principal.company_id)
     return await sync_snapshot(
         session,
         provider,
@@ -69,6 +85,7 @@ async def financial_report_endpoint(
     principal: PrincipalDependency,
     provider: AccountingProviderDependency,
 ) -> FinanceReport:
+    _check_accounting_provisioned(provider, principal.company_id)
     # Read-only calculation, including for viewers; no budget or provider writes.
     return financial_report(provider, payload)
 
@@ -83,6 +100,7 @@ async def me(principal: PrincipalDependency) -> dict[str, str]:
 async def accounting_status(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> dict[str, Any]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return {
         "provider": provider.__class__.__name__,
         "dataset": provider.dataset_version,
@@ -104,6 +122,7 @@ async def accounting_status(
 async def invoices(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[Invoice]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_invoices())
 
 
@@ -111,6 +130,7 @@ async def invoices(
 async def counterparties(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[Counterparty]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_counterparties())
 
 
@@ -118,6 +138,7 @@ async def counterparties(
 async def payments(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[Payment]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_payments())
 
 
@@ -125,6 +146,7 @@ async def payments(
 async def account_balances(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[AccountBalance]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_accounts())
 
 
@@ -132,6 +154,7 @@ async def account_balances(
 async def receivables(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[Receivable]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_receivables())
 
 
@@ -139,6 +162,7 @@ async def receivables(
 async def receivable_receipts(
     principal: PrincipalDependency, provider: AccountingProviderDependency
 ) -> list[ReceivableReceipt]:
+    _check_accounting_provisioned(provider, principal.company_id)
     return list(provider.list_receivable_receipts())
 
 
@@ -149,6 +173,7 @@ async def report(
     as_of: date,
     invoice_id: str | None = None,
 ) -> AccountingResult:
+    _check_accounting_provisioned(provider, principal.company_id)
     return AccountantAgent(provider).execute(invoice_id=invoice_id, as_of=as_of)
 
 

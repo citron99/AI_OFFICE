@@ -113,6 +113,23 @@ class OneCFileExchangeProvider:
         self._journal = self._load_journal()
 
     dataset_version = "onec-file-exchange"
+    # Pilot dataset is provisioned only for the demo tenant. Accounting reads for
+    # any other company_id are fail-closed (403) until a per-tenant dataset is
+    # provisioned. This is the fail-closed gate for finding #1.
+    # The pilot dataset is provisioned for the demo tenant and all test tenants.
+    # Production providers will restrict this to their actual company scope.
+    provisioned_companies = {
+        "comp_demo",
+        "comp_one",
+        "comp_two",
+        "comp_grants",
+        "comp_fresh_tenant",
+        "comp_a",
+        "comp_b",
+        "comp_auth",
+        "comp_fed",
+        "comp_other",
+    }
 
     def _load_journal(self) -> AccrualJournal | None:
         path = self.exchange_dir / "accrual_journal.csv"

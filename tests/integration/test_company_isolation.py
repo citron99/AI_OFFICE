@@ -229,3 +229,66 @@ async def test_knowledge_is_company_scoped_for_same_user(two_company_clients) ->
     assert (
         await second.post(f"/api/v1/knowledge/sources/{source.json()['id']}/reindex")
     ).status_code == 404
+
+
+@pytest.fixture
+async def non_provisioned_company_client(engine: AsyncEngine, tmp_path: Path):
+    """A principal in a company that is NOT in the provider's provisioned set."""
+    settings = Settings(
+        app_env="test",
+        auth_mode="api_key",
+        upload_dir=tmp_path,
+        auth_token_hashes={
+            hashlib.sha256(b"tok-unprov").hexdigest(): {
+                "user_id": "owner-unprov",
+                "role": "owner",
+                "company_id": "comp_unprovisioned",
+            }
+        },
+    )
+    app = create_app(
+        settings=settings, engine=engine, session_factory=create_session_factory(engine)
+    )
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app), base_url="http://test"
+        ) as client:
+            client.headers["Authorization"] = "Bearer tok-unprov"
+            yield client
+
+
+async def test_accounting_reads_are_provisioning_gated(
+    non_provisioned_company_client: httpx.AsyncClient,
+) -> None:
+    """Fail-closed gate: only provisioned companies can read accounting data.
+
+    The pilot dataset is provisioned only for specific companies (TZ ACC-01).
+    Any other company_id must get 403 on every accounting read endpoint, even
+    if the user is authenticated and authorized. This honors the "scope by
+    company_id at every boundary" invariant (AGENTS.md) for the accounting surface.
+    """
+    client = non_provisioned_company_client
+    # comp_unprovisioned is not in the provider's provisioned_companies set.
+    assert (await client.get("/api/v1/accounting/status")).status_code == 403
+    assert (await client.get("/api/v1/accounting/invoices")).status_code == 403
+    assert (await client.get("/api/v1/accounting/counterparties")).status_code == 403
+    assert (await client.get("/api/v1/accounting/payments")).status_code == 403
+    assert (await client.get("/api/v1/accounting/account-balances")).status_code == 403
+    assert (await client.get("/api/v1/accounting/receivables")).status_code == 403
+    assert (await client.get("/api/v1/accounting/receivable-receipts")).status_code == 403
+    assert (
+        await client.post(
+            "/api/v1/accounting/financial-report",
+            json={"start": "2026-08-01", "end": "2026-08-27"},
+        )
+    ).status_code == 403
+    assert (
+        await client.get(
+            "/api/v1/accounting/report",
+            params={"as_of": "2026-08-27"},
+        )
+    ).status_code == 403
+    # Sync is a write operation, so it also gets gated.
+    assert (
+        await client.post("/api/v1/accounting/sync", json={"request_key": "test-key"})
+    ).status_code == 403

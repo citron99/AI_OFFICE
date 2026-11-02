@@ -97,6 +97,7 @@ class AccountingProvider(Protocol):
     """Read-only boundary. No payment/write capability exists in the MVP."""
 
     dataset_version: str
+    provisioned_companies: set[str]
 
     def healthcheck(self) -> ProviderHealth: ...
     def get_sync_watermark(self) -> SyncWatermark: ...
