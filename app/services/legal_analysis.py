@@ -19,6 +19,7 @@ from app.prompts.legal import (
     EVIDENCE_ASSESSMENT_VERSION,
     LEGAL_SYSTEM_PROMPT,
 )
+from app.security.data_classification import ClassificationResult, DataClass, classify_text
 from app.security.egress_gateway import EgressRequest, evaluate_egress
 from app.services.files import FileService
 from app.services.knowledge import PILOT_CLASSIFICATIONS, KnowledgeService
@@ -66,6 +67,19 @@ async def extract_attachments(
             ]
 
         parts = await asyncio.to_thread(extract)
+        # Second DLP boundary: the upload scanner only saw container bytes;
+        # compressed streams (docx/xlsx) can hide restricted text that only
+        # appears after parse_document. Refuse the excerpt set before any of
+        # it reaches the LLM prompt or the evidence bundle.
+        extracted_text = "\n\n".join(part.text for part in parts)
+        post_extraction: ClassificationResult = classify_text(extracted_text)
+        if post_extraction.data_class == DataClass.RESTRICTED:
+            rules = sorted({finding.rule for finding in post_extraction.findings})
+            raise FileValidationError(
+                "Post-extraction DLP refused the attachment: restricted data detected ("
+                + ",".join(rules)
+                + ")"
+            )
         total += sum(len(part.text) for part in parts)
         if total > knowledge.settings.legal_document_max_chars:
             # Never silently truncate a contract and present a partial review as complete.
@@ -147,6 +161,7 @@ async def analyze(
     query: str,
     model_id: str,
     timeout_seconds: float,
+    company_id: str,
 ) -> LegalResult:
     if any(
         detections(text)
@@ -184,7 +199,7 @@ async def analyze(
         # confidential and personal classes require contours the MVP lacks.
         verdict = evaluate_egress(
             EgressRequest(
-                company_id="system",
+                company_id=company_id,
                 route="external_llm",
                 purpose="legal_analysis",
                 content=json.dumps(payload, ensure_ascii=False, default=str),

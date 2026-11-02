@@ -26,11 +26,39 @@ def radar_service(session: SessionDependency, request: Request) -> LegalChangeRa
 
 
 class LegalSearchRequest(BaseModel):
-    model_config = {"extra": "forbid"}
+    model_config = {
+        "extra": "forbid",
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "query": "срок хранения первичных документов по НДС",
+                    "jurisdiction": "RU",
+                    "effective_on": "2026-01-01",
+                }
+            ]
+        },
+    }
 
-    query: str = Field(min_length=3, max_length=2000)
-    jurisdiction: str = Field(min_length=2, max_length=8)
-    effective_on: date
+    query: str = Field(
+        min_length=3,
+        max_length=2000,
+        description=(
+            "Free text sent to the licensed provider via the egress gateway. "
+            "DLP-classified RESTRICTED payloads are refused before the "
+            "crossing and the decision is journalled."
+        ),
+        examples=["срок хранения первичных документов по НДС"],
+    )
+    jurisdiction: str = Field(
+        min_length=2,
+        max_length=8,
+        description="ISO-3166 alpha-2 code of the legal system to search.",
+        examples=["RU"],
+    )
+    effective_on: date = Field(
+        description="Point in time at which the answer must be valid.",
+        examples=["2026-01-01"],
+    )
 
 
 @router.get("/provider-status")
@@ -40,12 +68,16 @@ async def provider_status(
     request: Request,
 ) -> dict[str, object]:
     """Health, mode and license scope without exposing any licensed text."""
-    del principal
     provider = request.app.state.consultant_provider
     health = provider.healthcheck()
     scope = provider.license_scope()
+    # Tenant-scoped: an unfiltered count() leaks the whole platform's
+    # Consultant+ query volume to any authenticated principal and violates
+    # the AGENTS.md invariant that every company_id boundary is enforced.
     events_total = await session.scalar(
-        select(func.count()).select_from(ConsultantPlusSearchEventRecord)
+        select(func.count())
+        .select_from(ConsultantPlusSearchEventRecord)
+        .where(ConsultantPlusSearchEventRecord.company_id == principal.company_id)
     )
     return {
         "mode": provider.mode,

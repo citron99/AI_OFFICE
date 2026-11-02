@@ -13,8 +13,26 @@ from app.db.tables.accounting_sync import AccountingSyncRecord
 
 
 class SyncRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    request_key: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "request_key": "sync-2026-11-01-a08037",
+                }
+            ]
+        },
+    )
+    request_key: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9_-]+$",
+        description=(
+            "Client-generated idempotency token. Same (company, owner, key) "
+            "returns the original receipt instead of re-syncing the snapshot."
+        ),
+        examples=["sync-2026-11-01-a08037"],
+    )
 
 
 class SyncResponse(BaseModel):

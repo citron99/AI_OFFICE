@@ -3409,7 +3409,8 @@
               "approve",
               "reject"
             ],
-            "title": "Decision"
+            "title": "Decision",
+            "description": "Explicit human verdict on the pending approval. Agents never set this field; the OWNER role is required by the endpoint."
           }
         },
         "additionalProperties": false,
@@ -3417,7 +3418,15 @@
         "required": [
           "decision"
         ],
-        "title": "DecisionRequest"
+        "title": "DecisionRequest",
+        "examples": [
+          {
+            "decision": "approve"
+          },
+          {
+            "decision": "reject"
+          }
+        ]
       },
       "DocumentExcerpt": {
         "properties": {
@@ -3764,7 +3773,8 @@
             "type": "string",
             "maxLength": 200,
             "minLength": 16,
-            "title": "Invitation Token"
+            "title": "Invitation Token",
+            "description": "Single-use token returned by POST /api/v1/auth/invitations."
           }
         },
         "additionalProperties": false,
@@ -3772,7 +3782,12 @@
         "required": [
           "invitation_token"
         ],
-        "title": "InvitationAccept"
+        "title": "InvitationAccept",
+        "examples": [
+          {
+            "invitation_token": "inv_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGH"
+          }
+        ]
       },
       "InvitationCreate": {
         "properties": {
@@ -3784,7 +3799,8 @@
           "role": {
             "type": "string",
             "pattern": "^(admin|auditor|accountant|lawyer|security)$",
-            "title": "Role"
+            "title": "Role",
+            "description": "Server-assigned capability set for the invited principal."
           }
         },
         "additionalProperties": false,
@@ -3793,7 +3809,13 @@
           "email",
           "role"
         ],
-        "title": "InvitationCreate"
+        "title": "InvitationCreate",
+        "examples": [
+          {
+            "email": "lawyer@office.example",
+            "role": "lawyer"
+          }
+        ]
       },
       "Invoice": {
         "properties": {
@@ -4440,18 +4462,30 @@
             "type": "string",
             "maxLength": 2000,
             "minLength": 3,
-            "title": "Query"
+            "title": "Query",
+            "description": "Free text sent to the licensed provider via the egress gateway. DLP-classified RESTRICTED payloads are refused before the crossing and the decision is journalled.",
+            "examples": [
+              "срок хранения первичных документов по НДС"
+            ]
           },
           "jurisdiction": {
             "type": "string",
             "maxLength": 8,
             "minLength": 2,
-            "title": "Jurisdiction"
+            "title": "Jurisdiction",
+            "description": "ISO-3166 alpha-2 code of the legal system to search.",
+            "examples": [
+              "RU"
+            ]
           },
           "effective_on": {
             "type": "string",
             "format": "date",
-            "title": "Effective On"
+            "title": "Effective On",
+            "description": "Point in time at which the answer must be valid.",
+            "examples": [
+              "2026-01-01"
+            ]
           }
         },
         "additionalProperties": false,
@@ -4461,7 +4495,14 @@
           "jurisdiction",
           "effective_on"
         ],
-        "title": "LegalSearchRequest"
+        "title": "LegalSearchRequest",
+        "examples": [
+          {
+            "effective_on": "2026-01-01",
+            "jurisdiction": "RU",
+            "query": "срок хранения первичных документов по НДС"
+          }
+        ]
       },
       "LicenseScope": {
         "properties": {
@@ -4518,7 +4559,12 @@
         "required": [
           "refresh_token"
         ],
-        "title": "LogoutRequest"
+        "title": "LogoutRequest",
+        "examples": [
+          {
+            "refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"
+          }
+        ]
       },
       "ModelCallInfo": {
         "properties": {
@@ -4777,7 +4823,8 @@
             "type": "string",
             "maxLength": 8192,
             "minLength": 8,
-            "title": "Id Token"
+            "title": "Id Token",
+            "description": "Verified OIDC assertion from the configured IdP."
           }
         },
         "additionalProperties": false,
@@ -4785,7 +4832,12 @@
         "required": [
           "id_token"
         ],
-        "title": "OidcSessionRequest"
+        "title": "OidcSessionRequest",
+        "examples": [
+          {
+            "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImdhdGV3YXksInR5cCI6IkpXVCJ9.…signature-omitted-in-docs…"
+          }
+        ]
       },
       "Payable": {
         "properties": {
@@ -5993,7 +6045,8 @@
             "type": "string",
             "maxLength": 200,
             "minLength": 16,
-            "title": "Refresh Token"
+            "title": "Refresh Token",
+            "description": "Opaque token kept in memory by the SPA; never persisted to localStorage."
           }
         },
         "additionalProperties": false,
@@ -6001,19 +6054,30 @@
         "required": [
           "refresh_token"
         ],
-        "title": "RefreshRequest"
+        "title": "RefreshRequest",
+        "examples": [
+          {
+            "refresh_token": "rt_01JZK4Q9T2XW8V5R3N6Y7B0CDEFGHIJKL"
+          }
+        ]
       },
       "ReportRequest": {
         "properties": {
           "start": {
             "type": "string",
             "format": "date",
-            "title": "Start"
+            "title": "Start",
+            "examples": [
+              "2026-10-01"
+            ]
           },
           "end": {
             "type": "string",
             "format": "date",
-            "title": "End"
+            "title": "End",
+            "examples": [
+              "2026-10-31"
+            ]
           },
           "planned_cash_in": {
             "anyOf": [
@@ -6054,7 +6118,21 @@
           "start",
           "end"
         ],
-        "title": "ReportRequest"
+        "title": "ReportRequest",
+        "examples": [
+          {
+            "end": "2026-10-31",
+            "planned_cash_in": {
+              "amount": "1200000.00",
+              "currency": "RUB"
+            },
+            "planned_cash_out": {
+              "amount": "950000.00",
+              "currency": "RUB"
+            },
+            "start": "2026-10-01"
+          }
+        ]
       },
       "ResultReviewCreate": {
         "properties": {
@@ -6424,12 +6502,16 @@
           "jurisdiction": {
             "type": "string",
             "pattern": "^[A-Z]{2}$",
-            "title": "Jurisdiction"
+            "title": "Jurisdiction",
+            "examples": [
+              "RU"
+            ]
           },
           "effective_on": {
             "type": "string",
             "format": "date",
-            "title": "Effective On"
+            "title": "Effective On",
+            "description": "Only sources whose effective interval covers this date are retrieved."
           },
           "document_types": {
             "items": {
@@ -6456,7 +6538,18 @@
           "jurisdiction",
           "effective_on"
         ],
-        "title": "SearchRequest"
+        "title": "SearchRequest",
+        "examples": [
+          {
+            "document_types": [
+              "code"
+            ],
+            "effective_on": "2026-01-01",
+            "jurisdiction": "RU",
+            "query": "какие документы подтверждают право на вычет НДС",
+            "top_k": 5
+          }
+        ]
       },
       "SearchResponse": {
         "properties": {
@@ -6589,7 +6682,8 @@
             "type": "string",
             "maxLength": 40,
             "minLength": 1,
-            "title": "Artifact Id"
+            "title": "Artifact Id",
+            "description": "Id returned by POST /api/v1/files after the DLP scan."
           },
           "title": {
             "type": "string",
@@ -6600,13 +6694,18 @@
           "jurisdiction": {
             "type": "string",
             "pattern": "^[A-Z]{2}$",
-            "title": "Jurisdiction"
+            "title": "Jurisdiction",
+            "description": "ISO-3166 alpha-2.",
+            "examples": [
+              "RU"
+            ]
           },
           "document_type": {
             "type": "string",
             "maxLength": 255,
             "minLength": 1,
-            "title": "Document Type"
+            "title": "Document Type",
+            "description": "'code', 'fz', 'letter', 'ruling', …."
           },
           "authority": {
             "type": "string",
@@ -6659,6 +6758,7 @@
               "RESTRICTED"
             ],
             "title": "Classification",
+            "description": "Server re-computes this from DLP findings; a client-supplied value is treated as a hint and the stricter class wins.",
             "default": "INTERNAL"
           },
           "language": {
@@ -6679,7 +6779,21 @@
           "version",
           "effective_from"
         ],
-        "title": "SourceCreate"
+        "title": "SourceCreate",
+        "examples": [
+          {
+            "artifact_id": "art_01JZK4Q9T2XW8V5R3N6Y7B0C",
+            "authority": "Государственная Дума РФ",
+            "classification": "PUBLIC",
+            "document_type": "code",
+            "effective_from": "2026-01-01",
+            "jurisdiction": "RU",
+            "language": "ru",
+            "status": "ACTIVE",
+            "title": "НК РФ, часть первая",
+            "version": "2026-01-01"
+          }
+        ]
       },
       "SourceResponse": {
         "properties": {
@@ -6687,7 +6801,8 @@
             "type": "string",
             "maxLength": 40,
             "minLength": 1,
-            "title": "Artifact Id"
+            "title": "Artifact Id",
+            "description": "Id returned by POST /api/v1/files after the DLP scan."
           },
           "title": {
             "type": "string",
@@ -6698,13 +6813,18 @@
           "jurisdiction": {
             "type": "string",
             "pattern": "^[A-Z]{2}$",
-            "title": "Jurisdiction"
+            "title": "Jurisdiction",
+            "description": "ISO-3166 alpha-2.",
+            "examples": [
+              "RU"
+            ]
           },
           "document_type": {
             "type": "string",
             "maxLength": 255,
             "minLength": 1,
-            "title": "Document Type"
+            "title": "Document Type",
+            "description": "'code', 'fz', 'letter', 'ruling', …."
           },
           "authority": {
             "type": "string",
@@ -6757,6 +6877,7 @@
               "RESTRICTED"
             ],
             "title": "Classification",
+            "description": "Server re-computes this from DLP findings; a client-supplied value is treated as a hint and the stricter class wins.",
             "default": "INTERNAL"
           },
           "language": {
@@ -6812,7 +6933,21 @@
           "embedding_model",
           "chunk_count"
         ],
-        "title": "SourceResponse"
+        "title": "SourceResponse",
+        "examples": [
+          {
+            "artifact_id": "art_01JZK4Q9T2XW8V5R3N6Y7B0C",
+            "authority": "Государственная Дума РФ",
+            "classification": "PUBLIC",
+            "document_type": "code",
+            "effective_from": "2026-01-01",
+            "jurisdiction": "RU",
+            "language": "ru",
+            "status": "ACTIVE",
+            "title": "НК РФ, часть первая",
+            "version": "2026-01-01"
+          }
+        ]
       },
       "SyncRequest": {
         "properties": {
@@ -6821,7 +6956,11 @@
             "maxLength": 64,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9_-]+$",
-            "title": "Request Key"
+            "title": "Request Key",
+            "description": "Client-generated idempotency token. Same (company, owner, key) returns the original receipt instead of re-syncing the snapshot.",
+            "examples": [
+              "sync-2026-11-01-a08037"
+            ]
           }
         },
         "additionalProperties": false,
@@ -6829,7 +6968,12 @@
         "required": [
           "request_key"
         ],
-        "title": "SyncRequest"
+        "title": "SyncRequest",
+        "examples": [
+          {
+            "request_key": "sync-2026-11-01-a08037"
+          }
+        ]
       },
       "SyncResponse": {
         "properties": {
@@ -6897,7 +7041,11 @@
             "type": "string",
             "maxLength": 20000,
             "minLength": 1,
-            "title": "Message"
+            "title": "Message",
+            "description": "Free-text request from the owner. Never contains real card numbers or taxpayer IDs — the DLP registry rejects them.",
+            "examples": [
+              "Что с оплатой по счёту инв_007 от ООО «Ромашка»?"
+            ]
           },
           "attachment_ids": {
             "items": {
@@ -6905,7 +7053,8 @@
             },
             "type": "array",
             "maxItems": 10,
-            "title": "Attachment Ids"
+            "title": "Attachment Ids",
+            "description": "Artifact ids returned by POST /api/v1/files. Attachments are treated as untrusted input and re-scanned by the post-extraction DLP gate before indexing."
           },
           "requested_agent": {
             "anyOf": [
@@ -6927,7 +7076,11 @@
                 "type": "null"
               }
             ],
-            "title": "Jurisdiction"
+            "title": "Jurisdiction",
+            "description": "ISO-3166 alpha-2, e.g. RU.",
+            "examples": [
+              "RU"
+            ]
           },
           "effective_on": {
             "anyOf": [
@@ -6939,7 +7092,11 @@
                 "type": "null"
               }
             ],
-            "title": "Effective On"
+            "title": "Effective On",
+            "description": "Date at which the legal position must hold. Required for any lawyer-routed task together with `jurisdiction`.",
+            "examples": [
+              "2026-11-01"
+            ]
           },
           "invoice_id": {
             "anyOf": [
@@ -6951,7 +7108,10 @@
                 "type": "null"
               }
             ],
-            "title": "Invoice Id"
+            "title": "Invoice Id",
+            "examples": [
+              "inv_007"
+            ]
           },
           "requested_action": {
             "type": "string",
@@ -6977,7 +7137,28 @@
         "required": [
           "message"
         ],
-        "title": "TaskCreate"
+        "title": "TaskCreate",
+        "examples": [
+          {
+            "attachment_ids": [],
+            "effective_on": "2026-11-01",
+            "invoice_id": "inv_007",
+            "jurisdiction": "RU",
+            "message": "Что с оплатой по счёту инв_007 от ООО «Ромашка»?",
+            "process_id": "office_review",
+            "requested_action": "analyze",
+            "requested_agent": "accountant"
+          },
+          {
+            "effective_on": "2026-11-01",
+            "invoice_id": "inv_012",
+            "jurisdiction": "RU",
+            "message": "Проверь, можно ли готовиться к выплате по инв_012.",
+            "process_id": "daily_cash_and_receivable_risk",
+            "requested_action": "prepare_payment_draft",
+            "requested_agent": "lawyer"
+          }
+        ]
       },
       "TaskResponse": {
         "properties": {

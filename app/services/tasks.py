@@ -546,6 +546,27 @@ class TaskService:
                 "TaskService requires an injected accounting provider for office flows"
             )
         accounting_provider = self.accounting_provider
+        # Fail-closed gate: the pilot dataset is provisioned only for comp_demo.
+        if task.company_id not in getattr(accounting_provider, "provisioned_companies", set()):
+            result = AgentResult(
+                agent=AgentType.ORCHESTRATOR,
+                status="accounting_not_provisioned",
+                summary=(
+                    f"Бухгалтерский dataset не подключён для компании {task.company_id}. "
+                    "Пилот доступен только для comp_demo."
+                ),
+                warnings=["ACCOUNTING_NOT_PROVISIONED"],
+            )
+            await self.repository.set_result(task, result.model_dump(mode="json"))
+            audit(
+                self.session,
+                task,
+                "accounting_not_provisioned",
+                {"company_id": task.company_id},
+            )
+            await self._transition(task, TaskState.WAITING_INPUT)
+            await self.session.commit()
+            return self.to_response(task)
         lawyer_agent = self.lawyer
         if task.process_snapshot is None or task.run_budget_snapshot is None:
             raise RuntimeError("Office task is missing its executable process snapshot")

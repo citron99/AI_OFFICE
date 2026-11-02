@@ -67,6 +67,31 @@ def main() -> None:
                 "effective_on": "2026-08-27",
             }
 
+        # TZ 7.1: the autonomy ladder is fail-closed. A process with no
+        # ProcessRuntimeRecord starts at A1 (recommendation), where
+        # prepare_payment_draft is denied until the OWNER promotes it. Prove the
+        # ceiling holds, then promote office_review to A2 (drafts) exactly as the
+        # OWNER would via /processes/{id}/runtime, so the demo office can prepare
+        # synthetic drafts. This is a precondition, not a weakening: the default
+        # stays A1 for any tenant that has not been consciously promoted.
+        pre_promote = wait_task(
+            client,
+            client.post(
+                "/api/v1/tasks",
+                json=draft_payload("inv_100"),
+                headers={"Idempotency-Key": "smoke-pre-promote-" + uuid4().hex},
+            ).json(),
+        )
+        assert pre_promote["result"]["policy_decision"] == "deny", pre_promote
+        assert "AUTONOMY_LEVEL_BLOCKS_WRITE" in pre_promote["result"]["policy_reasons"], pre_promote
+        client.post(
+            "/api/v1/processes/office_review/runtime",
+            json={"autonomy_level": "a2_draft"},
+        ).raise_for_status()
+        promoted = client.get("/api/v1/processes/office_review/runtime").json()
+        assert promoted["autonomy_level"] == "a2_draft", promoted
+        print("PASS: unseeded contour denies drafts at A1; OWNER promotion to A2 applies")
+
         # TZ 7.2: within the established limit a synthetic draft is allowed
         # without a separate approval; the replay stays idempotent.
         payload = draft_payload("inv_100")

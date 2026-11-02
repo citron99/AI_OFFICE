@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from app.config import Settings
 from app.db.base import Base
 from app.db.session import create_engine, create_session_factory
+from app.db.tables.process_runtime import ProcessRuntimeRecord
 from app.main import create_app
 
 
@@ -16,6 +17,20 @@ async def engine() -> AsyncIterator[AsyncEngine]:
     test_engine = create_engine("sqlite+aiosqlite:///:memory:")
     async with test_engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+    # TZ 7.1: a fresh tenant now starts at A1 recommendation, not A2 draft.
+    # The synthetic pilot tenant has been promoted to A2 through the same
+    # OWNER runtime endpoint a real operator would use, so tests that need
+    # a draft may proceed keep working without weakening the default.
+    async with create_session_factory(test_engine)() as session:
+        session.add(
+            ProcessRuntimeRecord(
+                company_id="comp_demo",
+                process_id="office_review",
+                autonomy_level="a2_draft",
+                updated_by="usr_demo_owner",
+            )
+        )
+        await session.commit()
     yield test_engine
     await test_engine.dispose()
 

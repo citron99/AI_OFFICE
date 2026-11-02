@@ -15,6 +15,9 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from sqlalchemy.schema import CreateSchema, DropSchema
 
+from app.db.session import create_session_factory
+from app.db.tables.process_runtime import ProcessRuntimeRecord
+
 
 @pytest.fixture
 def postgres_test_url() -> str:
@@ -75,6 +78,21 @@ async def pg_engine(postgres_test_url: str) -> AsyncIterator[AsyncEngine]:
         created = True
         async with engine.begin() as connection:
             await connection.run_sync(migrate)
+        # TZ 7.1: migrations leave no ProcessRuntimeRecord, so office_review would
+        # fail closed at A1 and a prepare_payment_draft is denied before any
+        # approval/draft is produced. Seed the pilot tenant's promotion to A2 the
+        # way the OWNER runtime endpoint would, mirroring tests/conftest.py. The
+        # code default stays A1: an unseeded tenant still fails closed.
+        async with create_session_factory(engine)() as session:
+            session.add(
+                ProcessRuntimeRecord(
+                    company_id="comp_demo",
+                    process_id="office_review",
+                    autonomy_level="a2_draft",
+                    updated_by="usr_demo_owner",
+                )
+            )
+            await session.commit()
         yield engine
     finally:
         await engine.dispose()

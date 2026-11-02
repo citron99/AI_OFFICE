@@ -29,7 +29,7 @@ export default function ApprovalModal({record, decision, busy, invoice, onClose,
     },
     {
       field: "Контрагент",
-      before: invoice?.counterparty_id ? `${invoice.counterparty_id} · новый для проверки` : "Контрагент из реестра Mock1C",
+      before: invoice?.counterparty_id ?? "—",
       after: invoice?.counterparty_id || payload.counterparty_id || "—",
     },
     {

@@ -211,7 +211,7 @@ function App() {
   }
   async function createTask(event) {
     event.preventDefault();
-    if (busy || !me || me.role === "viewer") return;
+    if (busy || !me || !writable) return;
     const current = submission.current;
     if (current.active) return;
     setSubmissionState("sending");
@@ -251,7 +251,10 @@ function App() {
   }
   // Читающие роли без права записи: auditor (см. RBAC ТЗ 10.5).
   const writable = Boolean(me) && me.role !== "auditor";
-  const canApprove = me && ["owner", "admin"].includes(me.role);
+  // APR-006: server require_business_owner admits ONLY role=owner. Admin can
+  // operate the system but must never stand in for the OWNER on a payment
+  // decision — the UI must not tempt the user into a 403.
+  const canApprove = me?.role === "owner";
   const pending = approvals.filter(a => a.status === "pending");
   const activeTaskCount = tasks.filter(t => ["queued", "classifying", "planning", "running"].includes(t.state)).length;
   const visibleTasks = filterTasks(tasks, taskQuery, taskFilter);
@@ -441,7 +444,7 @@ function App() {
       </>}
 
       <Suspense fallback={<section className="ops-panel" aria-busy="true"><p className="pill">Загрузка раздела…</p></section>}>
-      {tab === "processes" && <ProcessControlsView api={api} writable={writable} />}
+      {tab === "processes" && <ProcessControlsView api={api} writable={canApprove} />}
       {tab === "knowledge" && <><LegalRagView api={api} sources={sources} writable={writable} />
         <div className="work-grid"><section className="card"><h2>Добавить тестовый источник</h2>
         <p className="muted">Вложение задачи не становится источником права автоматически. Здесь регистрируются только явно выбранные тестовые источники.</p>

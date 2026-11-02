@@ -1,12 +1,17 @@
 """Kill switch and autonomy ladder controls (TZ 7.1, REL-006, ACC-10)."""
 
+import hashlib
+from pathlib import Path
+
 import httpx
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from app.config import Settings
 from app.db.session import create_session_factory
 from app.db.tables.process_runtime import ProcessRuntimeRecord
+from app.main import create_app
 
 
 async def create_draft_task(client: httpx.AsyncClient) -> dict:
@@ -53,6 +58,48 @@ async def test_runtime_defaults_and_owner_can_flip_switches(
         assert record is not None
         assert record.updated_by == "usr_demo_owner"
         assert record.updated_at is not None
+
+
+async def test_unseeded_tenant_starts_fail_closed_at_a1(
+    engine: AsyncEngine, tmp_path: Path
+) -> None:
+    """TZ 7.1: a fresh tenant (no ProcessRuntimeRecord) must not inherit A2 draft."""
+    settings = Settings(
+        app_env="test",
+        auth_mode="api_key",
+        upload_dir=tmp_path,
+        auth_token_hashes={
+            hashlib.sha256(b"new-tenant-token").hexdigest(): {
+                "user_id": "new-tenant-owner",
+                "role": "owner",
+                "company_id": "comp_fresh_tenant",
+            }
+        },
+    )
+    app = create_app(
+        settings=settings, engine=engine, session_factory=create_session_factory(engine)
+    )
+    async with app.router.lifespan_context(app):
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app), base_url="http://test"
+        ) as c:
+            c.headers["Authorization"] = "Bearer new-tenant-token"
+            runtime = (await c.get("/api/v1/processes/office_review/runtime")).json()
+            assert runtime["autonomy_level"] == "a1_recommendation"
+            # At A1 the draft action is denied: no writes on an unseeded contour.
+            task = await c.post(
+                "/api/v1/tasks",
+                json={
+                    "message": "Проверь договор и счёт",
+                    "invoice_id": "inv_101",
+                    "requested_action": "prepare_payment_draft",
+                    "jurisdiction": "LV",
+                    "effective_on": "2026-08-27",
+                },
+            )
+            assert task.status_code == 201, task.text
+            assert task.json()["result"]["policy_decision"] == "deny"
+            assert "AUTONOMY_LEVEL_BLOCKS_WRITE" in task.json()["result"]["policy_reasons"]
 
 
 async def test_process_kill_switch_stops_runs_into_manual_mode(

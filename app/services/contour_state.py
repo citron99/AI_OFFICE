@@ -18,14 +18,33 @@ AUTONOMY_LEVELS: tuple[str, ...] = (
     "a3_approved_action",
 )
 
+# TZ 7.1: only A2+ sits on the autonomy ladder high enough to produce drafts.
+DRAFT_AUTONOMY_LEVELS: frozenset[str] = frozenset({"a2_draft", "a3_approved_action"})
+
+
+def runtime_allows_draft(runtime: "ProcessRuntimeState") -> bool:
+    """Single source of truth for "may this runtime still create a payment draft?".
+
+    Used by the policy gate at run time and re-checked at approval decision time,
+    so an OWNER who flips a kill switch or lowers the autonomy ceiling while an
+    approval sits pending cannot have the draft slip through (TZ 7.1, REL-006).
+    """
+    return (
+        runtime.process_enabled
+        and runtime.write_tools_enabled
+        and runtime.autonomy_level in DRAFT_AUTONOMY_LEVELS
+    )
+
 
 class ProcessRuntimeState(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     process_id: str
-    # TZ 7.1: the pilot process starts at A1; interactive tooling may default
-    # to A2. The ladder rises on measured quality, never by default.
-    autonomy_level: AutonomyLevel = "a2_draft"
+    # TZ 7.1: the pilot starts at A1 and the ladder rises only on measured
+    # quality. Model defaults must fail closed: if a caller forgets to pass
+    # a level, or a fresh tenant has no ProcessRuntimeRecord, the safe answer
+    # is "no drafts" — never "A2 allowed by default".
+    autonomy_level: AutonomyLevel = "a1_recommendation"
     process_enabled: bool = True
     llm_enabled: bool = True
     write_tools_enabled: bool = True
@@ -45,7 +64,7 @@ class ProcessRuntimeUpdate(BaseModel):
 async def get_runtime(
     session: AsyncSession, *, company_id: str, process_id: str
 ) -> ProcessRuntimeState:
-    """Current switches; the pilot process starts safely at A1."""
+    """Current switches; every process starts safely at A1 with writes disabled."""
     record = await session.scalar(
         select(ProcessRuntimeRecord).where(
             ProcessRuntimeRecord.company_id == company_id,
@@ -53,12 +72,10 @@ async def get_runtime(
         )
     )
     if record is None:
-        # The repeatable daily process is the 30-day pilot contour (TZ 14):
-        # it starts at A1 recommendation; interactive tooling defaults to A2.
-        start = (
-            "a1_recommendation" if process_id == "daily_cash_and_receivable_risk" else "a2_draft"
-        )
-        return ProcessRuntimeState(process_id=process_id, autonomy_level=start)
+        # TZ 7.1 + AGENTS.md ("autonomy ceilings ... fail-closed"): a tenant
+        # with no ProcessRuntimeRecord is untrusted and cannot produce drafts.
+        # The ladder only rises on measured quality, via update_runtime.
+        return ProcessRuntimeState(process_id=process_id)
     return ProcessRuntimeState.model_validate(record)
 
 

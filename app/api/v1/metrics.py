@@ -116,8 +116,7 @@ async def metrics(
     consultant_events = await session.scalar(
         select(func.count())
         .select_from(ConsultantPlusSearchEventRecord)
-        .join(TaskRecord, ConsultantPlusSearchEventRecord.task_id == TaskRecord.id)
-        .where(TaskRecord.company_id == principal.company_id)
+        .where(ConsultantPlusSearchEventRecord.company_id == principal.company_id)
     )
     lines.append(
         _gauge(
