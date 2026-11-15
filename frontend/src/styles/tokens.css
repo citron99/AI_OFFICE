@@ -19,7 +19,7 @@
   --muted: #626873;
 
   /* Палитра: смысловые цвета */
-  --accent: #b5441c;
+  --accent: #9f3b18;
   --accent-soft: #fff0e8;
   --accent-contrast: #ffffff;
   --success: #236344;
@@ -64,7 +64,7 @@ html[data-theme="dark"] {
   --text: #f8fafc;
   --muted: #94a3b8;
 
-  --accent: #e8703f;
+  --accent: #b5441c;
   --accent-soft: #3a1c10;
   --accent-contrast: #ffffff;
   --success: #5fc492;

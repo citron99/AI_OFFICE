@@ -37,6 +37,9 @@ COPY --from=builder --chown=office:office /app/.venv /app/.venv
 COPY --chown=office:office alembic.ini ./
 COPY --chown=office:office migrations ./migrations
 COPY --chown=office:office app ./app
+# V3 passports are the executed process contract; without them the app would
+# silently fall back to the hard-coded V2 graph.
+COPY --chown=office:office processes ./processes
 USER office
 EXPOSE 8000
 # No HEALTHCHECK here on purpose: the same image backs the API (HTTP :8000),

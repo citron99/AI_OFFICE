@@ -123,9 +123,12 @@ class FileService:
         mime_type = validate_file(filename, upload.content_type, data)
         # ART-002: DLP preflight runs before indexing or storage decisions.
         # Compressed Office XML must be extracted; decoding ZIP bytes misses it.
+        # PDFs are scanned again after text extraction (knowledge/legal paths),
+        # which is the second DLP boundary for compressed page streams.
+        suffix = Path(filename).suffix.lower()
         scan_text = (
             _office_scan_text(data)
-            if Path(filename).suffix.lower() in {".docx", ".xlsx"}
+            if suffix in {".docx", ".xlsx"}
             else data.decode("utf-8", errors="ignore")
         )
         classification = classify_text(scan_text)

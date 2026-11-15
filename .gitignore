@@ -23,4 +23,5 @@ output/
 frontend/node_modules/
 frontend/dist/
 _audit_scratch/
+.hallmark/
 agensi/

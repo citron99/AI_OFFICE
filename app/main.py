@@ -76,6 +76,14 @@ def create_app(
         application.state.consultant_provider = create_consultant_plus_provider(resolved_settings)
         application.state.artifact_storage = create_storage(resolved_settings)
         application.state.orchestrator = build_orchestrator()
+        # Fail closed: missing passports would silently degrade every run to
+        # the hard-coded V2 graph in containers that forgot to ship them.
+        from app.orchestrator.passport import available_passports
+
+        if not available_passports():
+            raise RuntimeError(
+                "No V3 process passports found; refusing to fall back to the V2 graph"
+            )
 
         if resolved_settings.auto_create_schema:
             async with active_engine.begin() as connection:

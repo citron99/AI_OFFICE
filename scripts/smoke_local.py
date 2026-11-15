@@ -124,7 +124,7 @@ def main() -> None:
                 # this smoke server's process tree before TemporaryDirectory cleanup.
                 subprocess.run(
                     ["taskkill", "/PID", str(server.pid), "/T", "/F"],
-                    check=True,
+                    check=False,
                     capture_output=True,
                     timeout=10,
                 )

@@ -3,6 +3,7 @@
 import {createServer} from "vite";
 import {renderToString} from "react-dom/server";
 import React from "react";
+import assert from "node:assert/strict";
 
 globalThis.fetch = async () =>
   new Response(JSON.stringify({code: "SMOKE_EMPTY"}), {status: 404});
@@ -51,6 +52,36 @@ try {
   }));
   assertTokens(dash, ["Доступные деньги", "Ожидаемые поступления", "Обязательства",
     "Просроченная дебиторка", "Mock1C", "vendor_north", "60+ ДНЕЙ"], "Dashboard");
+
+  // Regression: an unavailable source is not a successfully loaded zero.
+  const emptyDashboard = {
+    tasks: [], approvals: [], drafts: [],
+    processQuality: {review_rate: 0, completed_tasks: 0},
+    processControls: {postflight_coverage: 0, control_flags: {}, policy_decisions: {deny: 0}},
+    finance: {...financeReport, total_receivable: "0", total_outstanding: "0",
+      receivable_aging: {}, receivables: []},
+    onNavigate: () => {},
+  };
+  const renderDashboard = overrides => renderToString(React.createElement(dashboard.default, {...emptyDashboard, ...overrides})).replaceAll("<!-- -->", "");
+  for (const status of ["loading", "error"]) {
+    const html = renderDashboard({dataState: {status}});
+    assertTokens(html, ["Нет данных для оценки", "Нет загруженных данных"], `Dashboard(${status})`);
+    assert.ok(!html.includes("Низкий риск"));
+    assert.ok(!html.includes("Индекс риска 0 из 100"));
+    assert.ok(!html.includes("Просроченной дебиторской задолженности нет"));
+    assert.ok(!html.includes("сохранённые данные"));
+    assert.ok(!html.includes("Ежедневный процесс ещё не завершался"));
+  }
+  const noReport = renderDashboard({finance: null, dataState: {status: "ready"}});
+  assertTokens(noReport, ["Нет данных для оценки", "Сформируйте финансовый отчёт"], "Dashboard(no report)");
+  assert.ok(!noReport.includes("Низкий риск"));
+  const loadedZero = renderDashboard({dataState: {status: "ready"}});
+  assertTokens(loadedZero, ["Низкий риск", "Индекс риска 0 из 100", "Просроченной дебиторской задолженности нет"], "Dashboard(loaded zero)");
+  for (const status of ["refreshing", "stale"]) {
+    const html = renderDashboard({tasks: [{state: "failed"}, {state: "failed"}, {state: "failed"}],
+      dataState: {status, updatedAt: "2026-11-05T12:00:00Z"}});
+    assertTokens(html, ["предыдущий снимок", "Критический риск", "Индекс риска 84 из 100"], `Dashboard(${status})`);
+  }
 
   const approvalModal = await vite.ssrLoadModule("/src/features/approvals/ApprovalModal.jsx");
   const dialogElement = {showModal() {}, close() {}};

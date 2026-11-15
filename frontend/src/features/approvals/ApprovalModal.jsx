@@ -34,13 +34,13 @@ export default function ApprovalModal({record, decision, busy, invoice, onClose,
     },
     {
       field: "Счёт",
-      before: payload.invoice_id ? `${payload.invoice_id}${invoice?.number ? ` · №${invoice.number}` : ""}` : "Без счёта",
+      before: payload.invoice_id ? `${payload.invoice_id}${invoice?.number ? ` — №${invoice.number}` : ""}` : "Без счёта",
       after: approve ? "Создание mock-черновика платежа" : "Черновик не создаётся",
     },
   ];
   return <DecisionDialog busy={busy} onClose={onClose} title={approve ? "Подтвердить создание mock-черновика?" : "Отклонить запрос?"}>
-    <section className="approval-modal-summary"><span className="eyebrow">APPROVAL GATE · {approve ? "CONFIRM" : "REJECT"}</span>
-      <h3>{payload.invoice_id || "Без номера счёта"} · {money(payload.amount)}</h3>
+    <section className="approval-modal-summary"><h4>{approve ? "Подтверждение" : "Отклонение"}</h4>
+      <h3>{payload.invoice_id || "Без номера счёта"} — {money(payload.amount)}</h3>
       <dl><div><dt>Срок действия</dt><dd>{formatDate(record.expires_at)}</dd></div><div><dt>Хеш полезной нагрузки</dt><dd><code>{record.payload_hash}</code></dd></div></dl>
       <div className="approval-diff" role="table" aria-label="Параметры операции (Payload Diff)">
         <span className="approval-diff-title">Параметры операции (Payload Diff)</span>

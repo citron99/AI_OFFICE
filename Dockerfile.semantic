@@ -3,6 +3,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv==0.12.5
 COPY pyproject.toml uv.lock README.md ./
 COPY app ./app
+COPY processes ./processes
 RUN uv sync --locked --dev --no-editable
 COPY requirements-semantic.lock ./
 RUN uv pip install --python /app/.venv/bin/python --torch-backend cpu --require-hashes -r requirements-semantic.lock

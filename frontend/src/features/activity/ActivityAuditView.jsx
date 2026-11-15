@@ -20,7 +20,7 @@ export default function ActivityAuditView({trace, activity, onRefresh}) {
   }, [trace, activity]);
   const visible = events.filter(event => (kind === "all" || event.kind === kind) && `${event.actor} ${event.action} ${JSON.stringify(event.details)}`.toLocaleLowerCase("ru").includes(query.toLocaleLowerCase("ru")));
   return <section className="ops-panel activity-view" aria-label="Журнал активности и аудит">
-    <div className="ops-panel-head"><div><span className="eyebrow">ACTIVITY LOG · PERSISTED AUDIT</span><h3>Журнал активности</h3><p>События хранятся в PostgreSQL и ограничены текущим владельцем.</p></div>
+    <div className="ops-panel-head"><div><h3>Журнал активности</h3><p>События хранятся в PostgreSQL и ограничены текущим владельцем.</p></div>
       <button className="quiet" onClick={onRefresh}>Обновить</button></div>
     <div className="activity-summary"><div><b>{events.length}</b><span>событий</span></div><div><b>{events.filter(event => event.kind === "agent").length}</b><span>шагов агентов</span></div><div><b>{events.filter(event => event.kind === "audit").length}</b><span>audit events</span></div></div>
     <div className="thread-tools"><div className="segmented" role="group" aria-label="Фильтр журнала">

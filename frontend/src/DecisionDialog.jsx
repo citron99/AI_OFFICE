@@ -13,7 +13,6 @@ export default function DecisionDialog({title, busy, onClose, children}) {
   }, []);
   return <dialog ref={ref} className="modal" aria-labelledby="decision-title"
     onCancel={event => {event.preventDefault(); if (!busy) onClose();}}>
-    <span className="eyebrow">РЕШЕНИЕ СОБСТВЕННИКА</span>
     <h2 id="decision-title">{title}</h2>
     {children}
   </dialog>;

@@ -61,13 +61,12 @@ export default function ProcessControlsView({api, writable}) {
 
   return <section className="process-controls" aria-label="Управление процессами">
     <div className="ops-panel legal-hero"><div>
-      <span className="eyebrow">PROCESS CONTROLS · OWNER ONLY</span>
       <h2>Управление процессами</h2>
       <p>Kill switch и лестница автономности. Изменения применяются немедленно и
         без изменения кода; каждое изменение фиксируется с автором и временем.</p>
     </div></div>
     <div className="ops-grid legal-grid"><section className="ops-panel">
-      <div className="ops-panel-head"><div><span className="eyebrow">КОНТУР</span><h3>Процесс</h3></div></div>
+      <div className="ops-panel-head"><div><h3>Процесс</h3></div></div>
       <label>Процесс
         <select value={processId} onChange={event => setProcessId(event.target.value)}>
           {PROCESSES.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}

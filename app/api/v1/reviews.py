@@ -2,7 +2,7 @@ from collections import Counter
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
@@ -257,6 +257,7 @@ async def submit_review(
     principal: ReviewerDependency,
     session: SessionDependency,
     service: TaskServiceDependency,
+    request: Request,
 ) -> dict[str, Any]:
     task = await session.scalar(
         select(TaskRecord)
@@ -334,6 +335,7 @@ async def submit_review(
                 target_node_ids=payload.target_node_ids,
                 user_id=principal.user_id,
                 company_id=principal.company_id,
+                queued=request.app.state.settings.execution_mode == "queue",
             )
             record.rework_task_id = rework.task_id
             await session.commit()

@@ -29,8 +29,7 @@ export default function DailyOwnerDigest({tasks}) {
 
   if (!digest) {
     return <section className="ops-panel" aria-label="Ежедневная сводка">
-      <div className="ops-panel-head"><div><span className="eyebrow">DAILY OWNER DIGEST</span>
-        <h3>Ежедневная сводка</h3>
+      <div className="ops-panel-head"><div><h3>Ежедневная сводка владельца</h3>
         <p>Принятый результат процесса «Ежедневный контроль денег» появится здесь.</p></div></div>
       <div className="ops-empty">Ежедневный процесс ещё не завершался —
         запустите его через API или дождитесь расписания.</div>
@@ -39,8 +38,7 @@ export default function DailyOwnerDigest({tasks}) {
 
   const riskList = digest.top_nonpayment_risks || [];
   return <section className="ops-panel daily-digest" aria-label="Ежедневная сводка">
-    <div className="ops-panel-head"><div><span className="eyebrow">DAILY OWNER DIGEST · {digest.digest_date}</span>
-      <h3>Ежедневная сводка</h3>
+    <div className="ops-panel-head"><div><h3>Ежедневная сводка владельца</h3><p className="muted">{digest.digest_date}</p>
       <p>Watermark 1С: <code>{digest.watermark}</code></p></div></div>
     <div className="digest-kpis">
       <div className="digest-kpi"><small>Доступно денег</small><strong>{money(digest.cash_available)}</strong></div>
