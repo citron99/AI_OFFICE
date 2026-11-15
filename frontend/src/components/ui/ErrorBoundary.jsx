@@ -21,7 +21,6 @@ export default class ErrorBoundary extends React.Component {
         <section className="ops-panel" role="alert" aria-label="Ошибка раздела">
           <div className="ops-panel-head">
             <div>
-              <span className="eyebrow">UI ERROR</span>
               <h3>Раздел не удалось отобразить</h3>
               <p>Остальные разделы работают. Данные не пострадали.</p>
             </div>

@@ -21,7 +21,7 @@ export default function TaskDagView({graph, onSelectNode}) {
   const done = nodes.filter(node => node.state === "completed").length;
   const blocked = nodes.filter(node => node.readiness === "blocked" || node.state === "failed").length;
   return <section className="ops-panel dag-view" aria-label="Граф выполнения задачи">
-    <div className="ops-panel-head"><div><span className="eyebrow">EXECUTABLE DAG · {graph.process_id || "process"}</span><h3>Граф исполнения</h3>
+    <div className="ops-panel-head"><div><h3>Граф исполнения</h3><p className="muted">Процесс: {graph.process_id || "не указан"}</p>
       <p>Отображаются фактически сохранённые узлы и зависимости. Редактирование графа в UI намеренно отключено.</p></div>
       <div className="dag-head-stats">
         <span className="pill">{done}/{nodes.length} выполнено</span>
@@ -38,13 +38,13 @@ export default function TaskDagView({graph, onSelectNode}) {
             ? <><Icon name="shield" size={13} className="dag-node-icon" /> Проверка результата</>
             : <><Icon name={agentIcon(node.agent)} size={13} className="dag-node-icon" /> {agentLabels[node.agent] || node.agent || "Узел"}</>}</strong>
           <small>{node.action || "Решение собственника"}</small>
-          <span className="dag-status">{stateLabel(node.state)} · {readinessLabels[node.readiness] || node.readiness}</span>
+          <span className="dag-status">{stateLabel(node.state)} — {readinessLabels[node.readiness] || node.readiness}</span>
         </button>
         {index < nodes.length - 1 && <span className="dag-arrow" aria-hidden="true">
           <Icon name="arrowDown" size={13} className="icon" /></span>}
       </React.Fragment>;
     })}</div>
-    {selected && <aside className="dag-inspector"><span className="eyebrow">NODE INSPECTOR</span>
+    {selected && <aside className="dag-inspector"><h4>Параметры узла</h4>
       <strong>{byId[selected]?.action || "Проверка результата"}</strong>
       <p>Зависит от: {byId[selected]?.depends_on?.length ? byId[selected].depends_on.map(id => byId[id]?.node_id || id).join(", ") : "нет"}</p>
       {byId[selected]?.blocked_by?.length > 0 && <p className="warning">Блокируют: {byId[selected].blocked_by.join(", ")}</p>}</aside>}

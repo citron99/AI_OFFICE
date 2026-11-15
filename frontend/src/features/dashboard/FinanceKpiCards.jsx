@@ -16,7 +16,7 @@ export default function FinanceKpiCards({report, onNavigate}) {
     Финансовые показатели появятся после расчёта отчёта в разделе «Бухгалтерия».
     Значения не подменяются демонстрационными данными.
     {onNavigate && <div className="actions" style={{justifyContent: "center"}}>
-      <button type="button" className="quiet" onClick={() => onNavigate("finance")}>Сформировать отчёт →</button>
+      <button type="button" className="quiet" onClick={() => onNavigate("finance")}>Сформировать отчёт</button>
     </div>}
   </div>;
 
@@ -47,7 +47,7 @@ export default function FinanceKpiCards({report, onNavigate}) {
     {
       label: "Просроченная дебиторка", icon: "alert", tone: "rose",
       value: money(overdue), negative: overdue > 0,
-      hint: `${overdueShare}% ожидаемых поступлений · реестр Mock1C`,
+      hint: `${overdueShare}% ожидаемых поступлений — реестр Mock1C`,
     },
   ];
   return <div className="finance-kpis" aria-label="Финансовые показатели">

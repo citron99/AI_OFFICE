@@ -36,16 +36,16 @@ export default function Finance({api, tasks = [], approvals = [], controls = nul
     } catch (e) {setError(e.message);} finally {setBusy(false);}
   }
   return <section className="card finance-report">
-    <div className="section-head"><h2>Финансовый отчёт</h2><span className="pill">Синтетические данные · RUB</span></div>
+    <div className="section-head"><h2>Финансовый отчёт</h2><span className="pill">Синтетические данные — RUB</span></div>
     <div className="actions">
       <button disabled={busy} onClick={() => syncSnapshot(true)}>Проверить синтетический снимок</button>
       <button disabled={busy} className="quiet" onClick={() => syncSnapshot(false)}>Журнал чтения</button>
     </div>
     <p className="muted">Фиксируются версия, количество записей и контрольная сумма. Это не импорт из реальной 1С.</p>
     {syncRuns.length > 0 && <details><summary>Последние проверки снимка: {syncRuns.length}</summary>
-      {syncRuns.map(s => <p key={s.id}>{new Date(s.created_at).toLocaleString("ru-RU")} · {s.dataset_version} · {s.counts.invoices} счетов, {s.counts.accrual_entries} начислений<small className="id">SHA-256: {s.snapshot_hash}</small></p>)}
+      {syncRuns.map(s => <p key={s.id}>{new Date(s.created_at).toLocaleString("ru-RU")} — {s.dataset_version} — {s.counts.invoices} счетов, {s.counts.accrual_entries} начислений<small className="id">SHA-256: {s.snapshot_hash}</small></p>)}
     </details>}
-    <p className="muted">Синтетические данные · российский рубль · границы периода включены. План задаётся только для этого расчёта.</p>
+    <p className="muted">Синтетические данные — российский рубль — границы периода включены. План задаётся только для этого расчёта.</p>
     <form onSubmit={calculate}>
       <div className="fields">
         <label>Начало периода<input type="date" required value={start} onChange={e => setStart(e.target.value)} /></label>
@@ -73,11 +73,11 @@ export default function Finance({api, tasks = [], approvals = [], controls = nul
       </tbody></table></div>
       <p>Сравнение с {report.previous.start} — {report.previous.end}: изменение потока {money(report.net_change)}.</p>
       {report.plan_fact && <div className="callout"><strong>План-факт: факт минус план</strong>
-        <p>Поступления: {money(report.plan_fact.incoming_variance)} · Выплаты: {money(report.plan_fact.outgoing_variance)} · Чистый поток: {money(report.plan_fact.net_variance)}</p>
+        <p>Поступления: {money(report.plan_fact.incoming_variance)} — Выплаты: {money(report.plan_fact.outgoing_variance)} — Чистый поток: {money(report.plan_fact.net_variance)}</p>
         <small>Положительное отклонение выплат означает превышение плана расходов.</small>
       </div>}
       <h3>Задолженность поставщикам на {report.payables_as_of}</h3>
-      <p>Всего: {money(report.total_outstanding)} · Переплаты отдельно: {money(report.total_overpayment)}</p>
+      <p>Всего: {money(report.total_outstanding)} — Переплаты отдельно: {money(report.total_overpayment)}</p>
       <div className="table-wrap"><table><thead><tr><th>Срок просрочки</th><th>Остаток</th></tr></thead><tbody>
         {Object.entries(report.aging).map(([key, value]) => <tr key={key}><td>{buckets[key]}</td><td>{money(value)}</td></tr>)}
       </tbody></table></div>
@@ -116,8 +116,8 @@ function Profit({report}) {
     ["gross_profit", "Валовая прибыль"], ["operating_expense", "Операционные расходы"],
     ["depreciation", "Амортизация"], ["operating_profit", "Операционная прибыль"]];
   return <section>
-    <h3>P&L · метод начисления</h3>
-    <p className="muted">Регистр {report.journal_version} · покрытие {report.coverage_start} — {report.coverage_end}. Суммы без НДС.</p>
+    <h3>P&L — метод начисления</h3>
+    <p className="muted">Регистр {report.journal_version} — покрытие {report.coverage_start} — {report.coverage_end}. Суммы без НДС.</p>
     <div className="table-wrap"><table><thead><tr><th>Показатель</th><th>Текущий период</th><th>Предыдущий период</th></tr></thead><tbody>
       {rows.map(([key, label]) => <tr key={key}><td>{label}</td><td>{report.current ? money(report.current[key]) : "Нет полного покрытия"}</td><td>{report.previous ? money(report.previous[key]) : "Нет полного покрытия"}</td></tr>)}
     </tbody></table></div>

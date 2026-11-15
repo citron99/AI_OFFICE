@@ -30,18 +30,17 @@ export default function NonPaymentRisks({report, limit = 5}) {
   }, [report, limit]);
 
   return <section className="ops-panel" aria-label="Топ рисков неплатежа">
-    <div className="ops-panel-head"><div><span className="eyebrow">TOP NON-PAYMENT RISKS</span>
-      <h3>Топ рисков неплатежа</h3>
+    <div className="ops-panel-head"><div><h3>Основные риски неплатежей</h3>
       <p>Просроченные требования из финансового отчёта: остаток к получению и срок просрочки.</p>
     </div></div>
-    {!risks.length ? <div className="ops-empty">Просроченной дебиторской задолженности нет
-      {report ? "." : " — сформируйте финансовый отчёт в разделе «Бухгалтерия»."}</div> :
+    {!report || !Array.isArray(report.receivables) ? <div className="ops-empty">Нет данных для оценки просроченной задолженности. Сформируйте финансовый отчёт в разделе «Бухгалтерия».</div> :
+      !risks.length ? <div className="ops-empty">Просроченной дебиторской задолженности нет.</div> :
       <div className="risk-list">{risks.map(item => {
         const level = item.daysOverdue >= 60 ? "critical" : "high";
         return <div className="risk-row" key={item.receivable_id}>
           <div><b>{item.counterparty_id}</b>
-            <small>Срок оплаты: {item.due_on} · просрочка {item.daysOverdue} дн.
-              {Number(item.received) > 0 && ` · получено ${money(item.received)}`}</small>
+            <small>Срок оплаты: {item.due_on} — просрочка {item.daysOverdue} дн.
+              {Number(item.received) > 0 && ` — получено ${money(item.received)}`}</small>
             <span className={`risk-tag risk-${level}`}>{level === "critical" ? "60+ ДНЕЙ" : "ПРОСРОЧЕНО"}</span></div>
           <strong>{money(item.outstanding)}</strong>
         </div>;

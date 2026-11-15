@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import "./design.css";
 import "./styles/tokens.css";
+import "./design.css";
 import Finance from "./Finance";
 import { createTaskSubmission } from "./taskSubmission";
 import Dashboard from "./features/dashboard/Dashboard";
@@ -49,6 +49,7 @@ const policyLabels = {
 const evidenceLabels = {sufficient: "Достаточно", insufficient: "Недостаточно", partial: "Частично достаточно"};
 const agentLabels = {accountant: "Бухгалтер", lawyer: "Юрист", security: "Безопасность", orchestrator: "Оркестратор"};
 const themeStorageKey = "ai-office-theme";
+const activeTaskStates = ["queued", "classifying", "planning", "running"];
 
 function App() {
   const [tab, setTab] = useState("dashboard");
@@ -65,6 +66,9 @@ function App() {
   const [sources, setSources] = useState([]);
   const [processQuality, setProcessQuality] = useState(null);
   const [processControls, setProcessControls] = useState(null);
+  const [dashboardData, setDashboardData] = useState({status: "loading", updatedAt: null, token});
+  const currentToken = useRef(token);
+  currentToken.current = token;
   const [selected, setSelected] = useState(null);
   const [trace, setTrace] = useState(null);
   const [processGraph, setProcessGraph] = useState(null);
@@ -85,6 +89,9 @@ function App() {
     globalThis.localStorage?.getItem(themeStorageKey) === "dark" ? "dark" : "light");
   const submission = useRef(createTaskSubmission());
   const refreshInFlight = useRef(null);
+  const dataRefreshInFlight = useRef(null);
+  const refreshController = useRef(null);
+  const selectedRefreshController = useRef(null);
   const resultRef = useRef(null);
   const [submissionState, setSubmissionState] = useState("idle");
   const [taskFile, setTaskFile] = useState(null);
@@ -127,12 +134,37 @@ function App() {
   }
 
   async function refresh() {
-    const [identity, list, bills, decisions, prepared, knowledge, quality, controls, activityFeed] = await Promise.all([
-      api("/me"), api("/tasks"), api("/accounting/invoices"),
-      api("/approvals"), api("/drafts"), api("/knowledge/sources"), api("/processes/quality"), api("/processes/controls"), api("/activity"),
-    ]);
-    setMe(identity); setTasks(list); setInvoices(bills); setApprovals(decisions);
-    setDrafts(prepared); setSources(knowledge); setProcessQuality(quality); setProcessControls(controls); setActivity(activityFeed);
+    const requestToken = token;
+    if (dataRefreshInFlight.current?.token === requestToken) return dataRefreshInFlight.current.promise;
+    refreshController.current?.abort();
+    const controller = new AbortController();
+    refreshController.current = controller;
+    const request = (async () => {
+      setDashboardData(previous => ({
+        ...previous,
+        status: previous.updatedAt && previous.token === requestToken ? "refreshing" : "loading",
+      }));
+      try {
+        const options = {signal: controller.signal};
+        const [identity, list, bills, decisions, prepared, knowledge, quality, controls, activityFeed] = await Promise.all([
+          api("/me", options), api("/tasks", options), api("/accounting/invoices", options),
+          api("/approvals", options), api("/drafts", options), api("/knowledge/sources", options), api("/processes/quality", options), api("/processes/controls", options), api("/activity", options),
+        ]);
+        if (controller.signal.aborted || currentToken.current !== requestToken) return;
+        setMe(identity); setTasks(list); setInvoices(bills); setApprovals(decisions);
+        setDrafts(prepared); setSources(knowledge); setProcessQuality(quality); setProcessControls(controls); setActivity(activityFeed);
+        setDashboardData({status: "ready", updatedAt: new Date().toISOString(), token: requestToken});
+      } catch (error) {
+        if (controller.signal.aborted || error.name === "AbortError" || currentToken.current !== requestToken) return;
+        setDashboardData(previous => ({...previous, status: previous.updatedAt ? "stale" : "error"}));
+        throw error;
+      } finally {
+        if (refreshController.current === controller) refreshController.current = null;
+        if (dataRefreshInFlight.current?.promise === request) dataRefreshInFlight.current = null;
+      }
+    })();
+    dataRefreshInFlight.current = {token: requestToken, promise: request};
+    return request;
   }
 
   async function run(operation) {
@@ -169,19 +201,41 @@ function App() {
     }
   }
   useEffect(() => {
+    refreshController.current?.abort();
+    selectedRefreshController.current?.abort();
     setMe(null); setTasks([]); setInvoices([]); setApprovals([]); setDrafts([]);
     setSources([]); setProcessQuality(null); setProcessControls(null); setSelected(null); setTrace(null); setProcessGraph(null); setActivity(null); setFinanceReport(null);
     submission.current = createTaskSubmission();
     setSubmissionState("idle"); setTaskFile(null);
+    setDashboardData({status: "loading", updatedAt: null, token});
     run(refresh);
   }, [token]);
   useEffect(() => {
-    if (!tasks.some(t => ["queued", "classifying", "planning", "running"].includes(t.state))) return;
-    const timer = setInterval(() => {
-      refresh().catch(() => {});
-      if (selected) api("/tasks/" + selected.task_id).then(setSelected).catch(() => {});
+    if (!tasks.some(t => activeTaskStates.includes(t.state))) return;
+    let disposed = false;
+    // Poll only task state while work is in flight; the full workspace refresh
+    // (invoices, approvals, sources, controls, audit) runs once on settle.
+    const timer = setInterval(async () => {
+      try {
+        const list = await api("/tasks");
+        if (disposed) return;
+        setTasks(list);
+        if (!list.some(t => activeTaskStates.includes(t.state))) refresh().catch(() => {});
+      } catch { /* transient: keep the previous snapshot */ }
+      if (selected?.task_id) {
+        selectedRefreshController.current?.abort();
+        const controller = new AbortController();
+        selectedRefreshController.current = controller;
+        api("/tasks/" + selected.task_id, {signal: controller.signal})
+          .then(task => { if (!controller.signal.aborted) setSelected(task); })
+          .catch(error => { if (error.name !== "AbortError") return; });
+      }
     }, 2500);
-    return () => clearInterval(timer);
+    return () => {
+      disposed = true;
+      clearInterval(timer);
+      selectedRefreshController.current?.abort();
+    };
   }, [tasks, token, selected?.task_id]);
   useEffect(() => {
     if (selected?.task_id) resultRef.current?.scrollIntoView({block: "start"});
@@ -286,14 +340,15 @@ function App() {
         onOpenPalette={() => setPaletteOpen(true)} onRefresh={() => run(refresh)} busy={busy} />
       {error && <div className="error" role="alert">{error}</div>}
       {busy && <div role="status" className="working">Выполняется запрос…</div>}
-      <section className="page-title"><div><span className="eyebrow">РЕШЕНИЯ С ПРОВЕРЯЕМЫМИ ОСНОВАНИЯМИ</span>
+      <section className="page-title"><div>
         <h1>{tabs.find(t => t[0] === tab)[1]}</h1>
         <p className="page-description">{descriptions[tab]}</p></div>
         <span className="pill">Демо • без реальных данных</span></section>
 
       <ErrorBoundary>
       {tab === "dashboard" && <Dashboard tasks={tasks} approvals={approvals} drafts={drafts}
-        processQuality={processQuality} processControls={processControls} finance={financeReport} onNavigate={setTab} />}
+        processQuality={processQuality} processControls={processControls} finance={financeReport} onNavigate={setTab}
+        dataState={dashboardData.token === token ? dashboardData : {status: "loading", updatedAt: null}} />}
 
       {tab === "tasks" && <>
         <div className="metrics"><Metric label="Задачи" value={tasks.length} hint="Последние 50" />
@@ -315,7 +370,7 @@ function App() {
               value={message} onChange={e => setMessage(e.target.value)} /></label>
             <label>Синтетический счёт<select value={invoiceId} onChange={e => setInvoiceId(e.target.value)}>
               <option value="">Без счёта</option>{invoices.map(i =>
-                <option key={i.id} value={i.id}>{i.id} · {money(i.gross)}</option>)}</select></label>
+                <option key={i.id} value={i.id}>{i.id} — {money(i.gross)}</option>)}</select></label>
             <div className="fields"><label>Юрисдикция<input value={country} maxLength={2}
               placeholder="LV" onChange={e => setCountry(e.target.value.toUpperCase())} /></label>
               <label>Дата проверки<input type="date" value={asOf} onChange={e => setAsOf(e.target.value)} /></label></div>
@@ -333,7 +388,7 @@ function App() {
             {submissionState === "accepted" && <p role="status" className="muted">
               Задача принята. Повторная отправка откроет ту же задачу.</p>}
             <button className="primary wide" disabled={busy || !writable}>
-              {submissionState === "idle" ? "Начать проверку →" : "Повторить отправку безопасно"}</button>
+              {submissionState === "idle" ? "Начать проверку" : "Повторить отправку безопасно"}</button>
             {submissionState !== "idle" && <button type="button" disabled={busy}
               className="quiet" onClick={() => {
                 if (submissionState === "uncertain" && !window.confirm(
@@ -361,10 +416,10 @@ function App() {
               <small>{new Date(task.created_at).toLocaleString("ru-RU")}</small></div>
             <Badge value={task.state} /></button>)}</div></section></div>
         <section className="overview-banner">
-          <div><span className="eyebrow">КОНТРОЛЬ ОСТАЁТСЯ У ВАС</span>
+          <div>
             <h2>{pending.length ? "Есть решения, которые ждут вас" : "От вопроса — к обоснованному решению"}</h2>
             <p>Бухгалтерия, право и безопасность в одной проверке. Черновик создаётся только после вашего согласования.</p></div>
-          <button onClick={() => setTab("approvals")}>Согласования · {pending.length} →</button>
+          <button onClick={() => setTab("approvals")}>Согласования ({pending.length})</button>
         </section>
         {selected && <section ref={resultRef} className="card result"><div className="section-head">
           <h2>Результат проверки</h2><Badge value={selected.state} /></div>
@@ -398,23 +453,23 @@ function App() {
             <button className="quiet" onClick={() => setTab("activity")}>Аудит</button>
           </div>
           {selected.run_budget && <div className="callout"><strong>Лимит запуска</strong>
-            <p className="muted">Шаги: {selected.run_usage?.steps_started || 0}/{selected.run_budget.max_steps} · LLM: {selected.run_usage?.llm_calls || 0}/{selected.run_budget.max_llm_calls} · цикл доработки: {selected.rework_cycle || 0}/{selected.run_budget.max_rework_cycles}</p>
+            <p className="muted">Шаги: {selected.run_usage?.steps_started || 0}/{selected.run_budget.max_steps} — LLM: {selected.run_usage?.llm_calls || 0}/{selected.run_budget.max_llm_calls} — цикл доработки: {selected.rework_cycle || 0}/{selected.run_budget.max_rework_cycles}</p>
           </div>}
           <ResultReview task={selected} processGraph={processGraph} api={api} canReview={canApprove} busy={busy} />
           {processGraph && <details className="trace"><summary>{"\u0413\u0440\u0430\u0444 \u0432\u044b\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f"}</summary>
             {processGraph.nodes.map(node => <p key={node.id}><strong>{node.kind === "result_review" ? "\u041f\u0440\u043e\u0432\u0435\u0440\u043a\u0430 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u0430" : agentLabels[node.agent] || node.agent}</strong>
-              {" · "}{states[node.state] || node.state}{" · "}{node.readiness}
+              {" — "}{states[node.state] || node.state}{" — "}{node.readiness}
               {node.depends_on.length > 0 && <small> ← {node.depends_on.join(", ")}</small>}</p>)}
           </details>}
           {trace && <details className="trace"><summary>Ход выполнения и аудит</summary>
-            {trace.steps.map(s => <p key={s.id}><strong>{s.node_id || agentLabels[s.agent] || s.agent}</strong> — {states[s.state] || s.state} · попытка {s.attempt || 0}</p>)}
-            {trace.audit.map(e => <p key={e.id}>{e.event} · {new Date(e.created_at).toLocaleString("ru-RU")}</p>)}
+            {trace.steps.map(s => <p key={s.id}><strong>{s.node_id || agentLabels[s.agent] || s.agent}</strong> — {states[s.state] || s.state} — попытка {s.attempt || 0}</p>)}
+            {trace.audit.map(e => <p key={e.id}>{e.event} — {new Date(e.created_at).toLocaleString("ru-RU")}</p>)}
           </details>}
         </section>}
       </>}
 
       {tab === "finance" && <><Finance key={token} api={api} tasks={tasks} approvals={approvals} controls={processControls}
-        onReportChange={setFinanceReport} /><section className="card"><div className="section-head"><h2>Реестр счетов</h2><span className="pill">Mock1C · {invoices.length} записей</span></div>
+        onReportChange={setFinanceReport} /><section className="card"><div className="section-head"><h2>Реестр счетов</h2><span className="pill">Mock1C — {invoices.length} записей</span></div>
         <label>Поиск в реестре<input type="search" placeholder="Счёт, номер или контрагент" value={invoiceQuery}
           onChange={e => setInvoiceQuery(e.target.value)} /></label>
         <p className="muted">Суммы рассчитываются Decimal. Налоговая ставка — параметр тестовых данных, не правовая норма.</p>
@@ -423,7 +478,7 @@ function App() {
             <td>{i.counterparty_id}</td><td>{i.due_on}</td><td className="numeric">{money(i.gross)}</td>
             <td><button className="quiet" disabled={busy || submissionState !== "idle"}
               title={submissionState !== "idle" ? "Сначала нажмите «Новая задача» на рабочем столе" : "Проверить счёт"}
-              onClick={() => {setInvoiceId(i.id); setTab("tasks");}}>Проверить →</button></td></tr>)}</tbody></table></div>
+              onClick={() => {setInvoiceId(i.id); setTab("tasks");}}>Проверить</button></td></tr>)}</tbody></table></div>
         {!visibleInvoices.length && <Empty text="Счета не найдены. Измените поисковый запрос." />}
       </section></>}
 
@@ -431,7 +486,7 @@ function App() {
         <p>Это не юридическое одобрение и не разрешение на платёж. Банковское исполнение отсутствует.</p></section>
         {!approvals.length && <Empty text="Пока нет запросов на согласование." />}
         {approvals.map(a => <section className="card approval" key={a.id}><div className="section-head">
-          <h2>{a.payload.invoice_id} · {money(a.payload.amount)}</h2><Badge value={a.status} /></div>
+          <h2>{a.payload.invoice_id} — {money(a.payload.amount)}</h2><Badge value={a.status} /></div>
           <p>Действует до {new Date(a.expires_at).toLocaleString("ru-RU")}</p>
           <p className="muted id">Хеш действия: {a.payload_hash}</p>
           {a.status === "pending" && <div className="actions">
@@ -440,7 +495,7 @@ function App() {
             <button disabled={busy || !canApprove} onClick={() => setConfirm({record: a, decision: "reject"})}>Отклонить</button>
           </div>}</section>)}
         {drafts.length > 0 && <section className="card"><h2>Созданные черновики</h2>{drafts.map(d =>
-          <p key={d.id}><strong>{d.payload.invoice_id || "Синтетический черновик (в пределах лимита)"}</strong> · {money(d.payload.amount || 0)} <span className="muted">/ не отправлен</span></p>)}</section>}
+          <p key={d.id}><strong>{d.payload.invoice_id || "Синтетический черновик (в пределах лимита)"}</strong> — {money(d.payload.amount || 0)} <span className="muted">/ не отправлен</span></p>)}</section>}
       </>}
 
       <Suspense fallback={<section className="ops-panel" aria-busy="true"><p className="pill">Загрузка раздела…</p></section>}>
@@ -466,7 +521,7 @@ function App() {
         </form></section><section className="card"><h2>Источники</h2>
           {!sources.length && <Empty text="Источников пока нет. Без них юридические выводы не генерируются." />}
           {sources.map(s => <article className="source-row" key={s.id}><h3>{s.title}</h3>
-            <p>{s.jurisdiction} · {s.version} · {s.chunk_count} фрагментов</p><small>{s.embedding_model}</small></article>)}
+            <p>{s.jurisdiction} — {s.version} — {s.chunk_count} фрагментов</p><small>{s.embedding_model}</small></article>)}
         </section></div></>}
 
       {tab === "dag" && <TaskDagView graph={processGraph} />}
@@ -480,7 +535,7 @@ function App() {
       </Suspense>
       </ErrorBoundary>
 
-      <footer>AI-офис собственника · Внутренний пилот <span>Результаты требуют проверки специалистами</span></footer>
+      <footer>AI-офис собственника — Внутренний пилот <span>Результаты требуют проверки специалистами</span></footer>
     </main>
     {confirm && <ApprovalModal record={confirm.record} decision={confirm.decision} busy={busy}
       invoice={invoices.find(i => i.id === confirm.record.payload?.invoice_id) || null}
@@ -514,7 +569,7 @@ function ResultReview({task, processGraph, api, canReview, busy}) {
   if (!preview.eligible) return null;
   if (preview.review) return <section className="callout" aria-label="Result review">
     <strong>{"\u0420\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442 \u043f\u0440\u043e\u0432\u0435\u0440\u0435\u043d"}</strong>
-    <p>{preview.review.decision} · {preview.review.reason}</p>
+    <p>{preview.review.decision} — {preview.review.reason}</p>
     {preview.review.rework_task_id && <p className="muted">Создана отдельная задача доработки: {preview.review.rework_task_id}</p>}
   </section>;
   async function submit(event) {
@@ -553,17 +608,17 @@ function Result({result}) {
   const legal = result.legal || (result.mode?.startsWith("legal_") ? result : null);
   return <>
     {result.accounting && <div className="callout"><strong>Бухгалтерия</strong><p>
-      Оплачено: {money(result.accounting.paid)} · Остаток: {money(result.accounting.outstanding)}</p></div>}
+      Оплачено: {money(result.accounting.paid)} — Остаток: {money(result.accounting.outstanding)}</p></div>}
     {result.policy_reasons?.length > 0 && <p className="muted">Решение политики: {policyLabels[result.policy_decision] || result.policy_decision} — {result.policy_reasons.join(", ")}</p>}
     {(result.findings || []).map((f, i) => <article key={i} className={"finding risk-" + f.risk_level}>
-      <span className="eyebrow">{riskLabels[f.risk_level] || f.risk_level}</span><h3>{f.title}</h3><p>{f.description}</p>
-      {f.citations.map((c, j) => <small key={j}>{c.title} · {c.locator || c.source_id}</small>)}
+      <span className="section-label">{riskLabels[f.risk_level] || f.risk_level}</span><h3>{f.title}</h3><p>{f.description}</p>
+      {f.citations.map((c, j) => <small key={j}>{c.title} — {c.locator || c.source_id}</small>)}
     </article>)}
     {legal && <section><h3>Юридическая часть</h3><p>{legal.summary}</p>
       {legal.evidence_assessment && <p>Достаточность по оценке модели: {evidenceLabels[legal.evidence_assessment.status] || legal.evidence_assessment.status}</p>}
       {legal.unresolved_questions.map((q, i) => <p className="callout" key={i}>{q}</p>)}
-      {legal.evidence.map(hit => <details key={hit.chunk_id} className="evidence"><summary>{hit.title} · {hit.locator}</summary>
-        <blockquote>{hit.text}</blockquote><small>{hit.jurisdiction} · {hit.version}</small></details>)}
+      {legal.evidence.map(hit => <details key={hit.chunk_id} className="evidence"><summary>{hit.title} — {hit.locator}</summary>
+        <blockquote>{hit.text}</blockquote><small>{hit.jurisdiction} — {hit.version}</small></details>)}
       {legal.warnings.map((w, i) => <p key={i} className="warning">{w}</p>)}
     </section>}
     {(result.warnings || []).map((w, i) => <p key={i} className="warning">{w}</p>)}

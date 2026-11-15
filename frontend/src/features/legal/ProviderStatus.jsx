@@ -11,7 +11,7 @@ const modeLabels = {
 
 /**
  * Статус юридического провайдера (Консультант+ и аналоги) из
- * GET /api/v1/legal/provider-status → {mode, status, license_scope}.
+ * GET /api/v1/legal/provider-status {mode, status, license_scope}.
  *
  * Эндпоинт может отсутствовать в текущем контуре — тогда показывается явное
  * состояние «статус недоступен» без подмены данных. Данные только из API.

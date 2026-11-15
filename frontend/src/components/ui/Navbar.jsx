@@ -46,7 +46,7 @@ export default function Navbar({tabs, activeTab, onNavigate, pendingApprovalsCou
       <div className="navbar-meta">
         <strong>AI-Офис собственника</strong>
         <Icon name="chevronRight" size={13} className="navbar-chevron" />
-        <span className="navbar-version">v3 · integration</span>
+        <span className="navbar-version">v3 — integration</span>
         {pendingApprovalsCount > 0 && <button type="button" className="navbar-badge navbar-badge-alert"
           onClick={() => onNavigate("approvals")} title="Открыть согласования"
           aria-label={`Открыть согласования: ${pendingApprovalsCount} ожидает`}>
@@ -76,7 +76,7 @@ export default function Navbar({tabs, activeTab, onNavigate, pendingApprovalsCou
         <div className="navbar-login-anchor" ref={panelRef} style={{position: "relative"}}>
           <button type="button" className="navbar-identity navbar-button" aria-expanded={loginOpen}
             onClick={() => setLoginOpen(open => !open)}
-            title={me ? `${me.user_id} · ${me.role}` : "Указать ключ доступа"}
+            title={me ? `${me.user_id} — ${me.role}` : "Указать ключ доступа"}
             aria-label={me ? `Профиль ${me.user_id} (${me.role})` : "Указать ключ доступа"}>
             <span className="navbar-identity-icon"><Icon name="user" size={12} /></span>
             <span><b>{me ? me.user_id : "Нет доступа"}</b>
