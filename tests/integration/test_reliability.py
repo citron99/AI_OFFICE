@@ -1,9 +1,12 @@
 """Reliability integration: controlled fail-safe stop and checkpoint resume."""
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from app import jobs
+from app.agents.security import SecurityAgent
+from app.config import Settings
 from app.core.exceptions import RetryableAgentError
 from app.db.session import create_session_factory
 from app.db.tables.reliability import (
@@ -11,7 +14,8 @@ from app.db.tables.reliability import (
     ExecutionCheckpointRecord,
     ProviderCallRecord,
 )
-from app.services import tasks as tasks_module
+from app.db.tables.tasks import TaskStepRecord
+from app.main import create_app
 
 
 async def create_draft_task(client: httpx.AsyncClient) -> dict:
@@ -34,7 +38,7 @@ async def test_failed_safe_stops_cleanly_and_retry_resumes_from_checkpoint(
     engine: AsyncEngine,
     monkeypatch,
 ) -> None:
-    original_postflight = tasks_module.SecurityAgent.postflight
+    original_postflight = SecurityAgent.postflight
     calls = {"count": 0}
 
     def flaky_postflight(self, *, preflight, accounting, legal, requested_action):
@@ -49,7 +53,7 @@ async def test_failed_safe_stops_cleanly_and_retry_resumes_from_checkpoint(
             requested_action=requested_action,
         )
 
-    monkeypatch.setattr(tasks_module.SecurityAgent, "postflight", flaky_postflight)
+    monkeypatch.setattr(SecurityAgent, "postflight", flaky_postflight)
 
     task = await create_draft_task(client)
     # The run stops in a controlled safe state, never in an undefined one.
@@ -124,3 +128,64 @@ async def test_retry_of_healthy_task_is_rejected(client: httpx.AsyncClient) -> N
     assert task["state"] == "waiting_approval"
     response = await client.post(f"/api/v1/tasks/{task['task_id']}/retry")
     assert response.status_code == 409
+
+
+async def test_failed_safe_retry_in_queue_mode_publishes_instead_of_running(
+    client: httpx.AsyncClient,
+    engine: AsyncEngine,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    """A queued deployment must hand the resumed run to the worker, not the request."""
+
+    original_postflight = SecurityAgent.postflight
+
+    def failing_postflight(self, *, preflight, accounting, legal, requested_action):
+        raise RetryableAgentError("SECURITY_POSTFLIGHT_BUSY", "postflight busy")
+
+    monkeypatch.setattr(SecurityAgent, "postflight", failing_postflight)
+    task = await create_draft_task(client)
+    assert task["state"] == "failed_safe"
+    monkeypatch.setattr(SecurityAgent, "postflight", original_postflight)
+
+    async def step_count() -> int:
+        async with create_session_factory(engine)() as session:
+            return int(
+                await session.scalar(
+                    select(func.count())
+                    .select_from(TaskStepRecord)
+                    .where(TaskStepRecord.task_id == task["task_id"])
+                )
+                or 0
+            )
+
+    steps_before = await step_count()
+
+    settings = Settings(
+        app_env="test",
+        database_url="sqlite+aiosqlite:///:memory:",
+        llm_provider="mock",
+        embedding_provider="mock",
+        auto_create_schema=False,
+        upload_dir=tmp_path / "queue-uploads",
+        execution_mode="queue",
+    )
+    queue_app = create_app(
+        settings=settings,
+        engine=engine,
+        session_factory=create_session_factory(engine),
+    )
+    published: list[str] = []
+    monkeypatch.setattr(jobs, "publish", lambda task_id: published.append(task_id))
+    async with queue_app.router.lifespan_context(queue_app):
+        transport = httpx.ASGITransport(app=queue_app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as queue_client:
+            response = await queue_client.post(f"/api/v1/tasks/{task['task_id']}/retry")
+    assert response.status_code == 201, response.text
+    resumed = response.json()
+    assert resumed["task_id"] == task["task_id"]
+    assert resumed["state"] == "queued"
+    assert published == [task["task_id"]]
+
+    # The HTTP request did not continue the graph; the worker owns execution.
+    assert await step_count() == steps_before

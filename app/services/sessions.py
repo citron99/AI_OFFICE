@@ -74,17 +74,26 @@ async def session_identity_is_active(
     session: AsyncSession, *, user_id: str, role: str, company_id: str
 ) -> bool:
     """The database, not a previously issued token, owns current access."""
-    user = await session.get(UserRecord, user_id)
-    company = await session.get(CompanyRecord, company_id)
-    if user is None or user.status != "active" or company is None or company.status != "active":
-        return False
-    membership = await session.scalar(
-        select(CompanyMembershipRecord).where(
-            CompanyMembershipRecord.company_id == company_id,
-            CompanyMembershipRecord.user_id == user_id,
+    row = (
+        await session.execute(
+            select(
+                UserRecord.status,
+                CompanyRecord.status,
+                CompanyMembershipRecord.status,
+                CompanyMembershipRecord.role,
+            )
+            .select_from(CompanyMembershipRecord)
+            .join(UserRecord, UserRecord.id == CompanyMembershipRecord.user_id)
+            .join(CompanyRecord, CompanyRecord.id == CompanyMembershipRecord.company_id)
+            .where(
+                CompanyMembershipRecord.company_id == company_id,
+                CompanyMembershipRecord.user_id == user_id,
+            )
         )
+    ).first()
+    return bool(
+        row and row[0] == "active" and row[1] == "active" and row[2] == "active" and row[3] == role
     )
-    return membership is not None and membership.status == "active" and membership.role == role
 
 
 async def issue_refresh_token(

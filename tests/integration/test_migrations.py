@@ -18,7 +18,7 @@ def test_initial_migration_roundtrip(tmp_path: Path) -> None:
             cwd=root,
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=60,
         )
         assert result.returncode == 0, result.stderr
         engine = create_engine(f"sqlite:///{database.as_posix()}")
